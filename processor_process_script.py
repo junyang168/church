@@ -1,7 +1,7 @@
 from processor import Processor
 import openai
 import pandas as pd
-
+from utils import is_whitespace_or_punctuation
 
 class ProcessorProcessScript(Processor):
     def get_name(self):
@@ -16,13 +16,11 @@ class ProcessorProcessScript(Processor):
     def get_file_extension(self):
         return ".txt"
 
-    def is_whitespace_or_punctuation(self, char):
-        return  char.isspace()  or  char in string.punctuation or char in ['，','。','、','；','：','「','」','『','』','（','）','《','》','？','！','“','”','‘','’','—','…','．','～','〈','〉','﹑','﹔','﹕','﹖','﹗','﹘','﹙','﹚','﹛','﹜','﹝','﹞','﹟','﹠','﹡','﹢','﹣','﹤','﹥','﹦','﹨','﹩','﹪','﹫','！','？','；','：','、','，','。','．','〈','〉','《','》','「','」','『','』','（','）','［','］','｛','｝','【','】','—','…','～','﹏','﹋','﹌','﹍','﹎','﹏','﹐','﹑','﹒','﹔','﹕','﹖','﹗','﹘','﹙','﹚','﹛','﹜','﹝','﹞','﹟','﹠','﹡','﹢','﹣','﹤','﹥','﹦','﹨','﹩','﹪','﹫','！','？','；','：','、','，','。','．','〈','〉','《','》','「','」','『','』','（','）','［','］','｛','｝','【','】','—','…','～','﹏','﹋','﹌','﹍','﹎','﹏','﹐','﹑','﹒','﹔','﹕','﹖','﹗','﹘','﹙','﹚','﹛','﹜','﹝','﹞','﹟','﹠','﹡','﹢','﹣','﹤',']']
     
     def clean_find(self, text, sub_string):
         if not sub_string:
             return len(text)
-        cleaned_sub_string = [ch for ch in sub_string if not self.is_whitespace_or_punctuation(ch)]
+        cleaned_sub_string = [ch for ch in sub_string if not is_whitespace_or_punctuation(ch)]
         cleaned_sub_string = cleaned_sub_string[:10]
         j = len(cleaned_sub_string) - 1  
         for i in range(len(text)-1, -1, -1):
