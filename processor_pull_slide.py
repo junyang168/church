@@ -3,11 +3,10 @@ import re
 import jsonlines
 from datetime import datetime
 import cv2
-import pytesseract
 import math
 import os
-import pytesseract
 import json
+from image_to_text import ImageToText
 
 
 class ProcessorPullSlide(Processor):
@@ -55,21 +54,14 @@ class ProcessorPullSlide(Processor):
             video_path = os.path.join('/Users/junyang/Downloads/video', item_name + '.mp4')
             self.extract_frames(video_path, output_folder, item_name, snapshots)  
 
-    def extract_text_from_frame(self, frame):
-        image = frame[::, 645:]
-        # Convert the image to grayscale
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        # Apply thresholding to preprocess the image
-        _, threshold = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-        # Perform OCR using Tesseract
-        text = pytesseract.image_to_string(threshold, lang='chi_tra+grc+heb')
-        return text  
+
+    
 
     def extract_frames(self, video_path:str, output_folder:str, item_name:str,  indices: list[dict]):
         # Open the video file
         video = cv2.VideoCapture(video_path)
 
-        slide_text = []
+        text_extractor = ImageToText()
         for idx in indices:
             video.set(cv2.CAP_PROP_POS_MSEC, idx['timestamp'] * 1000 )
             success, frame = video.read()
@@ -77,9 +69,9 @@ class ProcessorPullSlide(Processor):
                 print(f'Processing {item_name} with index {idx["index"]}')
                 image_path = f"{output_folder}/{item_name}/{idx['index']}.jpg"
                 cv2.imwrite(image_path, frame)
-                text = self.extract_text_from_frame(frame)
-                slide_text.append({'index': idx['index'], 'text': text})
-        json.dump(slide_text, open(f"{output_folder}/{item_name}/slide_text.json",'w',encoding='UTF-8'), ensure_ascii=False )
+                text_extractor.extract_slide(idx['index'], frame)
+        text_extractor.save(f"{output_folder}/{item_name}/slide_text.json")
+        
         # Release the video file
         video.release()
 
