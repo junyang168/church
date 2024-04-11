@@ -23,10 +23,15 @@ function calcuateTime(index, timestamp) {
 }
 
 async function loadData() {
+    
+    var urlParams = new URLSearchParams(window.location.search);
+    var item_name = urlParams.get('i');
+
+
     const [slide_text, script_text, timeline ] = await Promise.all([ 
-            loadFile('slide_text.json'),
-            loadFile('2019-2-15 心mp4.txt'),
-            loadFile('2019-2-15 心mp4.jsonl')
+            loadFile( 'data/slide/' + item_name + '.json'),
+            loadFile( 'data/script_processed/' + item_name + '.txt'),
+            loadFile( 'data/script/' + item_name + '.jsonl')
              ])
     var slideData = JSON.parse(slide_text);
     var timelineData = timeline.split('\n').map(function(line) {
@@ -73,7 +78,8 @@ async function loadData() {
 
     return {
         slides: slideDictionary,
-        scripts: paragraphs            
+        scripts: paragraphs,
+        item:item_name            
     }    
 }
 
@@ -111,6 +117,12 @@ function timeChanged(e) {
 
 async function onLoaded() {
     scriptData = await loadData();
+    player = document.getElementById('player'); 
+    player.ontimeupdate = function() {timeChanged()};
+    player.src = 'data/video/' + scriptData.item + '.mp4';
+
+
+
     var sc = document.getElementById('sc');
     scriptData.scripts.forEach(function(para) {
         var div = document.createElement('div');
@@ -130,8 +142,6 @@ async function onLoaded() {
     });
     setSlideText(scriptData.scripts[0].index);
 
-    player = document.getElementById('player'); 
-    player.ontimeupdate = function() {timeChanged()};
 
 
 }

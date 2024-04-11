@@ -3,15 +3,17 @@ from utils import get_files
 from processor import Processor
 from utils import get_files
 
+from web_index import create_web_index
+
 from processor_transcribe import ProcessorTranscribe
 from processor_extract_audio import ProcessorExtractAudio
 from processor_fix import ProcessorFix
 from processor_process_script import ProcessorProcessScript
-
+from processor_convert_video import ProcessorConvertVideo
 
 class ProcessingPipeline:
     def __init__(self, base_folder:str):
-        self.processors = [ProcessorExtractAudio(), ProcessorTranscribe(),ProcessorProcessScript(), ProcessorFix()]
+        self.processors = [ProcessorConvertVideo(),ProcessorExtractAudio(), ProcessorTranscribe(),ProcessorProcessScript(), ProcessorFix()]
         self.base_folder = base_folder
         self.control_file = base_folder + '/Processing_stage.xlsx'
     
@@ -69,6 +71,8 @@ class ProcessingPipeline:
 
 
 base_folder = '/Users/junyang/church/data'
+
+create_web_index( base_folder)
 
 pipeline = ProcessingPipeline(base_folder)
 

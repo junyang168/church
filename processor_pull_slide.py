@@ -70,7 +70,7 @@ class ProcessorPullSlide(Processor):
                 image_path = f"{output_folder}/{item_name}/{idx['index']}.jpg"
                 cv2.imwrite(image_path, frame)
                 text_extractor.extract_slide(idx['index'], frame)
-        text_extractor.save(f"{output_folder}/{item_name}/slide_text.json")
+        text_extractor.save(f"{output_folder}/slide/{item_name}.json")
         
         # Release the video file
         video.release()
