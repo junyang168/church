@@ -7,23 +7,19 @@ import json
 
 class ImageToText:
     slides = []
-    def extract_slide(self, id, frame):
-        image = frame[::, 645:]
-        # Convert the image to grayscale
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        # Apply thresholding to preprocess the image
-        _, threshold = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-        # Perform OCR using Tesseract
-        text_tesseract = pytesseract.image_to_string(threshold, lang='chi_tra+grc+heb')
-        prev_text = self.slides[-1]['text_tesseract'] if self.slides else ''
-        self.slides.append({'index': id, 'text_tesseract': text_tesseract})  
-        if text_tesseract != prev_text:
-            text = self.get_text_from_image_clause(frame)
-        else:
-            text = self.slides[-1]['text']
-        self.slides[-1]['text'] = text
-        print( f"{id}-{text}")
-        return text
+
+    def extract_slides(self,snapshots):
+        for ss in snapshots:
+            image = ss['frame'][:1000, 645:]
+            # Convert the image to grayscale
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            # Apply thresholding to preprocess the image
+            _, threshold = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+
+            # Perform OCR using Tesseract
+            #text_tesseract = pytesseract.image_to_string(threshold, lang='chi_tra+grc+heb')            
+            text = self.get_text_from_image_claude(threshold)
+            self.slides.append({'time': ss['time'], 'text': text})  
 
     def get_base64_encoded_image(self, image):
         _, im_arr = cv2.imencode('.jpg', image)
@@ -36,7 +32,7 @@ class ImageToText:
         api_key=os.environ.get("ANTHROPIC_API_KEY"),
     )
 
-    def get_text_from_image_clause(self, image):
+    def get_text_from_image_claude(self, image):
         image_data = self.get_base64_encoded_image(image)
 
         message = self.client.messages.create(

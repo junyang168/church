@@ -3,31 +3,25 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">   
     <head>
         <link rel="stylesheet" href="styles.css">
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
         <script src="editor.js"></script>
     </head>
     <body>
-    <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
-         
-    <div style="display: flex; height: 100vh;">
-      <div style="width: 602px; background-color: lightgray;">
-        <div style="height: 400px; background-color: lightblue;">
-            <video width="600px" height="399px" controls id="player">
-                <source type="video/mp4">
-            </video>
-<!--<div id="player"></div>-->
+        <header>
+        </header>
+        <div style="display: flex; height: 100vh;">
+            <div style="width: 602px; background-color: lightgray;">
+                <div style="background-color: lightblue;">
+                    <video width="600px" id="player" controls>
+                        <source type="video/mp4" >
+                    </video>
                 </div>
                 <div style="flex-grow: 1; background-color: lightgreen;" id="slide_text">
                 </div>
                 <div id="demo"></div>
             </div>
-        <div style="flex-grow: 1; height: 100%; overflow-y: scroll;" id="sc"></div>
-         </body>
+            <div style="flex-grow: 1; height: 100%; overflow-y: scroll;" id="sc"></div>
+        </div>
+    </body>
 </html>
-            <div id="player"></div>
-        </div>
-        <div style="flex-grow: 1; background-color: lightgreen;" id="slide_text">
-        </div>
-      </div>
-    <div style="flex-grow: 1; height: 100%; overflow-y: scroll;" id="sc"></div>
-     </body>
 </html>

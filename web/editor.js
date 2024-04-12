@@ -50,11 +50,6 @@ async function loadData() {
             timelineDictionary[item.index] = item;
     });
 
-    var slideDictionary = {};
-    slideData.forEach(function(item) {
-        if(item && item.index)
-            slideDictionary[item.index] = item;
-    });            
 
     var scriptParagraphs = script_text.split('\n\n');
     paragraphs =  scriptParagraphs.map(function(para) {
@@ -69,15 +64,19 @@ async function loadData() {
     for(i = 0; i < paragraphs.length; i++) {
         var para = paragraphs[i];
         var timelineItem = i > 0 ? timelineDictionary[ paragraphs[i-1].index] : null;
-        if (timelineItem) 
+        if (timelineItem) {
+            para.start_timeline = timelineItem.end_time.split(',')[0];
             para.start_time = calcuateTime( timelineItem.index, timelineItem.end_time);
-        else
+        }
+        else {
+            para.start_timeline = '00:00:00'
             para.start_time = 0 
+        }
         
     }
 
     return {
-        slides: slideDictionary,
+        slides: slideData,
         scripts: paragraphs,
         item:item_name            
     }    
@@ -89,30 +88,34 @@ async function loadData() {
 var scriptData = {}
 var player = null;
 
-function setSlideText(index) {
-    var slideText = scriptData.slides[index].text;
-    var slideTextDiv = document.getElementById('slide_text');
-    slideTextDiv.innerHTML = slideText;
+function setSlideText(currentTime) {
+    for(i = 0; i < scriptData.slides.length; i++) {
+        slide = scriptData.slides[i]; 
+        if ( currentTime > slide.time && currentTime < (i < scriptData.slides.length -1 ? scriptData.slides[i+1].time: 9999999999)) {
+            var slideTextDiv = document.getElementById('slide_text');
+            slideTextDiv.innerHTML = marked.parse(slide.text); 
+            
+            break
+        }
+    }
 }
 
 function timeChanged(e) {
-// Display the current position of the video in a <p> element with id="demo"
+    var currentTime = player.currentTime;
     document.getElementById("demo").innerHTML = player.currentTime;
     var sc = document.getElementById('sc');
-    var divs = sc.getElementsByTagName('div');
+    var divs = sc.childNodes
     for (var i = 0; i < divs.length; i++) {
         var div = divs[i];
         para = div.data
-        next_para_start_time = i < divs.length - 1 ? divs[i+1].data.start_time : 9999999999;
-        if (player.currentTime > para.start_time && player.currentTime < next_para_start_time) {
-            setSlideText(para.index);
+        if (currentTime > para.start_time && currentTime < (i < divs.length - 1 ? divs[i+1].data.start_time : 9999999999)) {
             div.classList.add('highlight');
-            break
         }
         else {                    
             div.classList.remove('highlight');
         }
     }
+    setSlideText(currentTime)
 }        
 
 async function onLoaded() {
@@ -121,27 +124,24 @@ async function onLoaded() {
     player.ontimeupdate = function() {timeChanged()};
     player.src = 'data/video/' + scriptData.item + '.mp4';
 
-
-
     var sc = document.getElementById('sc');
     scriptData.scripts.forEach(function(para) {
         var div = document.createElement('div');
-        div.innerHTML = para.text;
+        div.innerHTML ='<div class="timeline" >'+ para.start_timeline + '</div><div style="display:table-cell">' + para.text + "</div>";
         div.style.display = 'block';
         div.style.margin = '10px';
         div.style.cursor = 'pointer';
+        div.style.display = 'table-row';
         div.data = para
         div.onclick = function(e) {
-            para = e.target.data;
+            para = e.target.parentNode.data;
             player = document.getElementById('player');
             player.currentTime =  para.start_time;
             player.play();
-            setSlideText(para.index);
         }
         sc.appendChild(div);
     });
-    setSlideText(scriptData.scripts[0].index);
-
+    setSlideText(0);
 
 
 }

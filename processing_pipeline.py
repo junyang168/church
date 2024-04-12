@@ -10,10 +10,11 @@ from processor_extract_audio import ProcessorExtractAudio
 from processor_fix import ProcessorFix
 from processor_process_script import ProcessorProcessScript
 from processor_convert_video import ProcessorConvertVideo
+from processor_pull_slide import ProcessorPullSlide
 
 class ProcessingPipeline:
     def __init__(self, base_folder:str):
-        self.processors = [ProcessorConvertVideo(),ProcessorExtractAudio(), ProcessorTranscribe(),ProcessorProcessScript(), ProcessorFix()]
+        self.processors = [ProcessorConvertVideo(),ProcessorExtractAudio(), ProcessorTranscribe(),ProcessorProcessScript(), ProcessorFix(), ProcessorPullSlide()]
         self.base_folder = base_folder
         self.control_file = base_folder + '/Processing_stage.xlsx'
     
@@ -61,7 +62,7 @@ class ProcessingPipeline:
                 if status is None:
                     df.at[item_name, p.get_name()] = 'In Progress'
                 
-                if status == 'In Progress' or pd.isna(status):
+                if  pd.isna(status) or status == 'In Progress':
                     print(f'Processing {item_name} with {p.get_name()}')
                     p.process(input_folder, item_name, self.base_folder + '/' + p.get_output_folder_name(), fname, is_append)
                     if self.get_file_index(fname) == last_item_index:
