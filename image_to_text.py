@@ -4,20 +4,15 @@ import base64
 import cv2
 import pytesseract
 import json
+import tqdm
 
 class ImageToText:
     slides = []
 
     def extract_slides(self,snapshots):
-        for ss in snapshots:
-            image = ss['frame'][:1000, 645:]
-            # Convert the image to grayscale
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            # Apply thresholding to preprocess the image
-            _, threshold = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-
-            # Perform OCR using Tesseract
-            #text_tesseract = pytesseract.image_to_string(threshold, lang='chi_tra+grc+heb')            
+        for i in tqdm.tqdm(range(len(snapshots))):
+            ss = snapshots[i]
+            threshold = ss['frame']
             text = self.get_text_from_image_claude(threshold)
             self.slides.append({'time': ss['time'], 'text': text})  
 
@@ -73,7 +68,7 @@ if __name__ == '__main__':
     img = cv2.imread(image_path)
 
     # Get the text from the image
-    text = image_to_text.extract_slide('s1',img)
+#    text = image_to_text.extract_slide('s1',img)
 
     # Print the extracted text
-    print(text)
+#    print(text)

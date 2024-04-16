@@ -9,7 +9,7 @@ mp3_file_path = '/Users/junyang/Church/data/audio'
 script_file_path = '/Users/junyang/Church/data/script'
 
 class ProcessorExtractAudio(Processor):
-
+    duration_in_seconds = 20*60 # 20 mins
 
     def get_name(self):
         return "extract audio"
@@ -18,7 +18,7 @@ class ProcessorExtractAudio(Processor):
         return 0
 
     def get_input_folder_name(self):
-        return "/Users/junyang/Downloads/video"
+        return "video"
 
     def get_output_folder_name(self):
         return "audio"
@@ -26,10 +26,12 @@ class ProcessorExtractAudio(Processor):
     def get_file_extension(self):
         return ".mp4"
 
-    def process(self, input_folder, item_name:str, output_folder:str):
+    def process(self, input_folder, item_name:str, output_folder:str, file_name:str = None, is_append:bool = False):
         # Load the video file
-        fname = self.get_input_file_name(input_folder, item_name)   
+        fname = self.get_file_full_path_name(input_folder, item_name)   
         video_clip = VideoFileClip(fname)
+
+
         chunks = math.ceil(video_clip.duration / self.duration_in_seconds)
         video_clip.close()
 

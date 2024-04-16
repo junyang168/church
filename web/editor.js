@@ -22,6 +22,13 @@ function calcuateTime(index, timestamp) {
     return (parseInt(sec) - 1) * 60 * 20 + parseInt(ts[0]) * 60 * 60 + parseInt(ts[1]) * 60 + parseInt(ts[2])
 }
 
+function formatTime(seconds) {
+    var date = new Date(null);
+    date.setSeconds(seconds); // specify value for SECONDS here
+    var timeString = date.toISOString().substring(11, 11+8);
+    return timeString;
+}
+
 async function loadData() {
     
     var urlParams = new URLSearchParams(window.location.search);
@@ -30,7 +37,7 @@ async function loadData() {
 
     const [slide_text, script_text, timeline ] = await Promise.all([ 
             loadFile( 'data/slide/' + item_name + '.json'),
-            loadFile( 'data/script_processed/' + item_name + '.txt'),
+            loadFile( 'data/script_fixed/' + item_name + '.txt'),
             loadFile( 'data/script/' + item_name + '.jsonl')
              ])
     var slideData = JSON.parse(slide_text);
@@ -57,7 +64,7 @@ async function loadData() {
         var endIndex = para.indexOf(']');
         return { 
             index: para.substring(startIndex + 1, endIndex), 
-            text: para.substring(0, startIndex - 1) 
+            text: para.substring(0, startIndex ) 
         }
     }); 
 
@@ -65,8 +72,10 @@ async function loadData() {
         var para = paragraphs[i];
         var timelineItem = i > 0 ? timelineDictionary[ paragraphs[i-1].index] : null;
         if (timelineItem) {
-            para.start_timeline = timelineItem.end_time.split(',')[0];
             para.start_time = calcuateTime( timelineItem.index, timelineItem.end_time);
+
+            para.start_timeline = formatTime(para.start_time);
+
         }
         else {
             para.start_timeline = '00:00:00'

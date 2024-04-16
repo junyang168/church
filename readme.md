@@ -8,7 +8,7 @@
   - Installed Nginx using [this guide](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-20-04).
   - Enabled [Basic Authentication](https://www.digitalocean.com/community/tutorials/how-to-set-up-password-authentication-with-nginx-on-ubuntu-22-04).
   - [Script Editor](http://ec2-3-17-77-104.us-east-2.compute.amazonaws.com)  
-  - Free Tier offers a maximum of 30GB storage.
+  - Free Tier offers a maximum of 30GB storage.[Extend Storage](https://docs.aws.amazon.com/ebs/latest/userguide/recognize-expanded-volume-linux.html) 
 
 ### Video Player
 

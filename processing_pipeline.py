@@ -11,11 +11,13 @@ from processor_fix import ProcessorFix
 from processor_process_script import ProcessorProcessScript
 from processor_convert_video import ProcessorConvertVideo
 from processor_pull_slide import ProcessorPullSlide
+from screen_detection import DectectBluescreen
 
 class ProcessingPipeline:
-    def __init__(self, base_folder:str):
-        self.processors = [ProcessorConvertVideo(),ProcessorExtractAudio(), ProcessorTranscribe(),ProcessorProcessScript(), ProcessorFix(), ProcessorPullSlide()]
+    def __init__(self, base_folder:str, input_folder:str):
+        self.processors = [ProcessorConvertVideo(),ProcessorExtractAudio(), ProcessorTranscribe(),ProcessorProcessScript(), ProcessorFix(),DectectBluescreen(), ProcessorPullSlide()]
         self.base_folder = base_folder
+        self.input_folder = input_folder
         self.control_file = base_folder + '/Processing_stage.xlsx'
     
     def get_item_name(self, fname: str):
@@ -44,7 +46,7 @@ class ProcessingPipeline:
         df = pd.read_excel(self.control_file, index_col=0)
         
         for p in self.processors:
-            input_folder = p.get_input_folder_name() if p.get_input_folder_name()[0] == '/' else self.base_folder + '/' + p.get_input_folder_name()
+            input_folder = self.input_folder if p.get_input_folder_name()[0] == '/' else self.base_folder + '/' + p.get_input_folder_name()
             files = get_files(input_folder, p.get_file_extension())
             files.sort()
             item_name = ''
@@ -59,6 +61,8 @@ class ProcessingPipeline:
                     is_append = True  
                 
                 status = self.get_cell_value(df, item_name, p.get_name())
+                if status == 'Pause':
+                    continue
                 if status is None:
                     df.at[item_name, p.get_name()] = 'In Progress'
                 
@@ -75,7 +79,9 @@ base_folder = '/Users/junyang/church/data'
 
 create_web_index( base_folder)
 
-pipeline = ProcessingPipeline(base_folder)
+input_folder = '/Users/junyang/Library/CloudStorage/GoogleDrive-junyang168@gmail.com/My Drive/Church/video'
+
+pipeline = ProcessingPipeline(base_folder,input_folder)
 
 pipeline.process()
 
