@@ -1,3 +1,18 @@
+function onSignIn(googleUser) {
+    var profile = googleUser.getBasicProfile();
+    console.log('ID: ' + profile.getId()); // Don't send this directly to your backend!
+    console.log('Full Name: ' + profile.getName());
+    console.log('Given Name: ' + profile.getGivenName());
+    console.log('Family Name: ' + profile.getFamilyName());
+    console.log('Image URL: ' + profile.getImageUrl());
+    console.log('Email: ' + profile.getEmail()); // This email is retrievable only if the email scope is included in the authorization.
+
+    // The ID token you need to pass to your backend:
+    var id_token = googleUser.getAuthResponse().id_token;
+    console.log("ID Token: " + id_token);
+}
+
+
 async function loadFile(filePath) {
     var xhr = new XMLHttpRequest();            
     xhr.open('GET', encodeURI(filePath), true);
@@ -29,8 +44,11 @@ function formatTime(seconds) {
     return timeString;
 }
 
+var simplemde
+
 async function loadData() {
-    
+    simplemde = new SimpleMDE({ element: document.getElementById("slide_textarea") });
+
     var urlParams = new URLSearchParams(window.location.search);
     var item_name = urlParams.get('i');
 
@@ -101,8 +119,9 @@ function setSlideText(currentTime) {
     for(i = 0; i < scriptData.slides.length; i++) {
         slide = scriptData.slides[i]; 
         if ( currentTime > slide.time && currentTime < (i < scriptData.slides.length -1 ? scriptData.slides[i+1].time: 9999999999)) {
-            var slideTextDiv = document.getElementById('slide_text');
-            slideTextDiv.innerHTML = marked.parse(slide.text); 
+//            var slideTextDiv = document.getElementById('slide_text');
+//            slideTextDiv.innerHTML = marked.parse(slide.text); 
+            simplemde.value(slide.text);
             
             break
         }
@@ -128,6 +147,7 @@ function timeChanged(e) {
 }        
 
 async function onLoaded() {
+
     scriptData = await loadData();
     player = document.getElementById('player'); 
     player.ontimeupdate = function() {timeChanged()};

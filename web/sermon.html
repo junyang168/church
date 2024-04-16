@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">   
+    <meta name="google-signin-client_id" content="674603198442-bl7rkgeoiig3ei5uan4damdnliipt4sv.apps.googleusercontent.com">
     <head>
         <link rel="stylesheet" href="styles.css">
+        <script src="https://apis.google.com/js/platform.js" async defer></script>
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+        <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
         <script src="editor.js"></script>
     </head>
     <body>
         <header>
+<!--            <div class="g-signin2" data-onsuccess="onSignIn"></div> -->
         </header>
         <div id="main" style="display: flex; height: 100vh;">
             <div style="width: 602px; background-color: lightgray;">
@@ -16,7 +21,8 @@
                         <source type="video/mp4" >
                     </video>
                 </div>
-                <div style="flex-grow: 1; background-color: lightgreen;" id="slide_text">
+                <div style="flex-grow: 1; " id="slide_text">
+                    <textarea id="slide_textarea" style="width: 100%; height: 100%;"></textarea>
                 </div>
                 <div id="demo"></div>
             </div>
