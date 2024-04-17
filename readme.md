@@ -32,3 +32,8 @@
 ### Deployment
 - The web site is under the web folder
 - deploy.sh deploys the code. deploy_data.sh deploys data
+
+### DNS and SSL
+- Use [NoIP's dynamic DNS](https://my.noip.com/) - holylogos.servehttp.com
+- [Enable SSL using Let's Encrypt](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-22-04) 
+- Tried Route 53. Unable to point registed domain to work

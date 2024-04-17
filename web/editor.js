@@ -147,6 +147,11 @@ function timeChanged(e) {
 }        
 
 async function onLoaded() {
+    if(!sessionStorage.getItem('userId')) {
+        alert('Please sign into Google')
+        return
+    }
+
 
     scriptData = await loadData();
     player = document.getElementById('player'); 

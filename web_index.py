@@ -25,7 +25,7 @@ def create_web_index(base_folder):
         file.write("<ul>\n")
         for item in sorted_items:
             qs = urllib.parse.quote(item)
-            file.write(f"<li><a href='script_editor.html?i={ qs }'>{item}</a></li>\n")
+            file.write(f"<li><a href='sermon.html?i={ qs }'>{item}</a></li>\n")
         file.write("</ul>\n")
         file.write("</body>\n")
         file.write("</html>\n")
