@@ -1,18 +1,3 @@
-function onSignIn(googleUser) {
-    var profile = googleUser.getBasicProfile();
-    console.log('ID: ' + profile.getId()); // Don't send this directly to your backend!
-    console.log('Full Name: ' + profile.getName());
-    console.log('Given Name: ' + profile.getGivenName());
-    console.log('Family Name: ' + profile.getFamilyName());
-    console.log('Image URL: ' + profile.getImageUrl());
-    console.log('Email: ' + profile.getEmail()); // This email is retrievable only if the email scope is included in the authorization.
-
-    // The ID token you need to pass to your backend:
-    var id_token = googleUser.getAuthResponse().id_token;
-    console.log("ID Token: " + id_token);
-}
-
-
 async function loadFile(filePath) {
     var xhr = new XMLHttpRequest();            
     xhr.open('GET', encodeURI(filePath), true);
@@ -44,10 +29,105 @@ function formatTime(seconds) {
     return timeString;
 }
 
-var simplemde
+var simplemde = null;
+var currentPos = null;
+
+function onKeyup(cm,event) {
+    var pos = cm.getCursor();
+    var lineCount = cm.lineCount();
+    console.log('currentPos:',currentPos)
+    console.log('Pos:',pos)
+
+    direction = null
+    if(event.key === 'ArrowDown' && pos.line === lineCount - 1 && currentPos && currentPos.ch == pos.ch) 
+        direction = 'Next'
+    else if (event.key === 'ArrowUp' && pos.line === 0)
+        direction = 'Prev'
+
+    if(direction) {
+        ta = cm.getTextArea()
+        var parent = ta.parentNode.parentNode;
+        var nextRow = direction=='Next'? parent.nextElementSibling : parent.previousElementSibling
+        if(nextRow ) {
+            nextPara = nextRow.getElementsByClassName('paragraph')[0]
+            turnOnEditor(nextPara.id)
+        }
+
+    }
+
+}    
+
+function onKeydown(cm,event) {
+    var pos = cm.getCursor();
+    var lineCount = cm.lineCount();
+    currentPos = null   
+    if(event.key === 'ArrowDown' && pos.line === lineCount - 1) 
+        currentPos = pos;
+}
+
+function turnOnEditor(para_id) {
+    if(simplemde) {
+        simplemde.toTextArea();
+        simplemde = null
+    }
+    simplemde = new SimpleMDE({ element: document.getElementById(para_id) });
+    simplemde.codemirror.on('keydown', onKeydown);         
+    simplemde.codemirror.on('keyup', onKeyup);         
+    simplemde.codemirror.setCursor({line: 0, ch: 0});
+    simplemde.codemirror.focus();
+}
+
+function sameRow(e1, e2) {
+    while(e1 && e1.tagName !== 'TR') {
+        e1 = e1.parentNode;
+    }
+    while(e2 && e2.tagName !== 'TR') {
+        e2 = e2.parentNode;
+    }
+    return e1 === e2;
+}
+
+function getTextAreInRow(e) {
+    while(e && e.tagName !== 'TR') {
+        e = e.parentNode;
+    }
+    return e.getElementsByClassName('paragraph')[0];
+}
+
+function onRowClicked(e) {
+    if(simplemde) {
+        ta = simplemde.element
+        if(sameRow(e.target, ta))
+            return;
+    }
+    para_id = getTextAreInRow(e.target).id;
+
+//                    player = document.getElementById('player');
+//                    player.currentTime =  para.start_time;
+//                    player.play();
+    turnOnEditor(para_id);
+}
+
+function loadParagraphs(scriptData) {
+
+    sc = document.getElementById('sc');
+    scriptData.scripts.forEach(function(para) {
+        var tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="timeline" width='50'>${para.start_timeline}</td>
+            <td><textarea id="${para.index}" readonly class="paragraph">${para.text}</textarea></td>`;
+        tr.onclick = onRowClicked                
+        sc.appendChild(tr);
+    })
+
+    var paras =  document.getElementsByClassName('paragraph')
+    for( ta of paras){
+        ta.style.height = ta.scrollHeight + 'px';
+    }
+}
+
 
 async function loadData() {
-    simplemde = new SimpleMDE({ element: document.getElementById("slide_textarea") });
 
     var urlParams = new URLSearchParams(window.location.search);
     var item_name = urlParams.get('i');
@@ -76,7 +156,7 @@ async function loadData() {
     });
 
 
-    var scriptParagraphs = script_text.split('\n\n');
+    var scriptParagraphs = script_text.match(/[^\[]+\[[\d_]+\]\n\n/g);
     paragraphs =  scriptParagraphs.map(function(para) {
         var startIndex = para.indexOf('[');
         var endIndex = para.indexOf(']');
@@ -148,36 +228,15 @@ function timeChanged(e) {
 
 async function onLoaded() {
     if(!sessionStorage.getItem('userId')) {
-        alert('Please sign into Google')
-        return
+//        alert('Please sign into Google')
+//        return
     }
 
 
     scriptData = await loadData();
-    player = document.getElementById('player'); 
-    player.ontimeupdate = function() {timeChanged()};
-    player.src = 'data/video/' + scriptData.item + '.mp4';
 
-    var sc = document.getElementById('sc');
-    scriptData.scripts.forEach(function(para) {
-        var div = document.createElement('div');
-        div.innerHTML ='<div class="timeline" >'+ para.start_timeline + '</div><div style="display:table-cell">' + para.text + "</div>";
-        div.style.display = 'block';
-        div.style.margin = '10px';
-        div.style.cursor = 'pointer';
-        div.style.display = 'table-row';
-        div.data = para
-        div.onclick = function(e) {
-            para = e.target.parentNode.data;
-            player = document.getElementById('player');
-            player.currentTime =  para.start_time;
-            player.play();
-        }
-        sc.appendChild(div);
-    });
-    setSlideText(0);
-
-
+    loadParagraphs(scriptData);
+    
 }
 
 window.onload = onLoaded;

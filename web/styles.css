@@ -28,3 +28,21 @@ header{
     vertical-align: super;
 }
 
+
+.row {
+    display : 'block';
+    margin : '10px';
+    cursor : 'pointer';
+    display : 'table-row';
+}
+
+.paragraph {
+    width: 100%;
+    font-size: 12pt;
+    height: auto;
+    resize: none;
+    border: none;
+    outline: none;  
+    overflow-y: auto;
+    padding: 10px;
+}
