@@ -5,7 +5,7 @@
 <head>
     <title>Video Index</title>
     <link rel="stylesheet" href="styles.css">
-
+    <script src="config.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
 
@@ -64,9 +64,11 @@
         }
 
         window.onload = function () {
-            var main = document.getElementsByTagName('main')
-                main[0].style.display = 'block';
-            return;
+            if( env == 'dev') {
+                var main = document.getElementsByTagName('main')
+                    main[0].style.display = 'block';
+                return;
+            }
 
             if (sessionStorage.getItem('userId')) {
                 var main = document.getElementsByTagName('main')

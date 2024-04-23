@@ -8,6 +8,7 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
         <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
         <script src="https://accounts.google.com/gsi/client" async defer></script>
+        <script src="config.js"></script>
         <script src="editor.js"></script>
     </head>
     <body>
@@ -36,9 +37,9 @@
                     </video>
                 </div>
                 <div style="flex-grow: 1; " id="slide_text">
-                    <textarea id="slide_textarea" style="width: 100%; height: 100%;"></textarea>
                 </div>
                 <div id="demo"></div>
+                <div id="status" style="align-self: flex-end;" id="status"></div>
             </div>
             <div style="flex-grow: 1; height: 100%; overflow-y: scroll;" >
                 <table width="100%" id="sc">
