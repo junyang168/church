@@ -13,10 +13,16 @@ header{
     justify-content: flex-end; /* Aligns children (the button) to the right */
 }
 
-
-.highlight {
-    background-color: yellow;
+main {
+    padding-top: 20px;
+    padding-left: 150px;
+    padding-right: 150px;
 }
+
+.home-button {
+    align-self: flex-start;
+}
+
 
 .timeline {
     display:table-cell;
@@ -46,3 +52,24 @@ header{
     overflow-y: auto;
     background-color: inherit;
 }
+
+#slide_text {
+    width: 99%;
+    font-size: 12pt;
+    min-height: 200px;
+    outline: none;  
+}
+
+.highlight {
+    background-color: yellow;
+}
+
+.change_red {
+    color: red;
+    text-decoration: line-through;
+}
+
+.change_green {
+    color: green;
+}
+

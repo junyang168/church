@@ -23,4 +23,7 @@ class Processor(ABC):
 
     def get_file_full_path_name(self, folder_name:str, item_name:str):
         return folder_name + '/' + item_name + self.get_file_extension()
+    
+    def setmetadata(self, items:list, metadata_file:str):
+        pass
 

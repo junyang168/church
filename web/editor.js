@@ -1,7 +1,13 @@
+var scriptData = {}
+var player = null;
+var permissions = null;
+var user_id = null;
+var context = null;
 
-async function loadFile(type, item_name, ext) {
+async function loadFile(user_id, type, item_name, ext) {
     try {
-        const response = await fetch(api_prefix + 'load/' + type + '/' + item_name + '/' + ext);
+        url = `${api_prefix}load/${user_id}/${type}/${item_name}/${ext}`
+        const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -11,6 +17,39 @@ async function loadFile(type, item_name, ext) {
         console.error(error);
     }      
 }
+
+function getUserId() {
+    return  user_id = env != 'dev' ? sessionStorage.getItem('userId') : 'junyang168@gmail.com'
+
+}
+
+async function getContext() {
+
+    user_id = getUserId()
+    if(!user_id) {
+        alert('Please sign into Google')
+        return null
+    }
+
+    var urlParams = new URLSearchParams(window.location.search);
+    item_name =  urlParams.get('i');
+    permissions = await loadPermissions(user_id, item_name)
+
+    if(!permissions || !permissions.canRead) {
+        alert('You do not have permission to view this item')
+        return null
+    }
+
+
+    context =  { user_id: user_id,
+            item_name :item_name,
+            view_changes: urlParams.get('c') == 'true'
+        }
+
+    return context
+
+}
+
 
 
 function calcuateTime(index, timestamp) {
@@ -62,8 +101,30 @@ function onKeydown(cm,event) {
         currentPos = pos;
 }
 
+function highlightCurrentPara(current_para) {
+
+    if( permissions && permissions.canWrite && !context.view_changes) 
+        return false
+
+    current_para.style.backgroundColor = 'yellow';
+    player.play()
+    var paras =  document.getElementsByClassName('paragraph')
+    for( ta of paras){
+        if( ta != current_para && ta.style.backgroundColor == 'yellow' ) {
+            ta.style.backgroundColor = 'inherit';
+            break;
+        }
+    }
+    return true
+}
+
 function turnOnEditor(para_id) {
     current_para = document.getElementById(para_id)
+    syncPlayerSlide(current_para.data.start_time);
+
+    if( highlightCurrentPara(current_para) )
+        return
+
     if(simplemde) {
         simplemde.toTextArea();
         simplemde = null
@@ -78,18 +139,37 @@ function turnOnEditor(para_id) {
             className: "fa fa-undo", // Font Awesome icon class
             title: "Undo",
         },        
-        "link", "image","quote", "horizontal-rule", "preview", "side-by-side", "fullscreen",
+        "link", "image","quote", "horizontal-rule", "preview", "side-by-side", "fullscreen","|",
         {
             name: "play",
             action: function(editor) {
                 para = editor.element.data;
-                player = document.getElementById('player');
-                syncPlayerSlide( para.start_time );
-                player.play();
+                player.play()
+
             },
             title: "Play Video",
-            className: "fa fa-video-camera", // Optional
+            className: "fa fa-play", 
           },
+          {
+            name: "pause",
+            action: function(editor) {
+                player.pause()
+
+            },
+            title: "Pause Video",
+            className: "fa fa-pause", 
+          },
+          {
+            name: "Rewind",
+            action: function(editor) {
+                para = editor.element.data;
+                syncPlayerSlide(para.start_time);
+                player.play()
+
+            },
+            title: "Play from start",
+            className: "fa fa-fast-backward", 
+          }
   
     ],
     status: false,
@@ -102,9 +182,9 @@ function turnOnEditor(para_id) {
         var para = simplemde.element.data;
         para.text = updatedContent;
 
-        if(!pendingSave) {
-            pendingSave = true;
-            setTimeout(saveScript, 10000);
+        if(!pendingSaves['scripts']) {
+            pendingSaves['scripts'] = true;
+            setTimeout(saveScript, saveDelay);
         }
     });
     
@@ -112,17 +192,21 @@ function turnOnEditor(para_id) {
     simplemde.codemirror.setCursor({line: 0, ch: 0});
     simplemde.codemirror.focus();
 
-    syncPlayerSlide(current_para.data.start_time);
     player.pause();
 
 }
 
-var pendingSave = false;
+var pendingSaves = {
+    slides: false,
+    scripts: false
+};
 
 function saveScript() {
-    if(pendingSave) {
-        pendingSave = false;
-        document.getElementById('status').innerHTML = 'Saving...'    
+    for( dataKey in pendingSaves) {
+        if(!pendingSaves[dataKey])
+            continue;
+        pendingSaves[dataKey] = false;
+        document.getElementById('status').innerHTML = `Saving ${dataKey}...`
         fetch(api_prefix + 'update_script', {
             method: 'POST',
             headers: {
@@ -131,20 +215,22 @@ function saveScript() {
             body: JSON.stringify({
                 user_id: env != 'dev' ? sessionStorage.getItem('userId') : 'junyang168@gmail.com',
                 item: scriptData.item,
-                paragraphs: scriptData.scripts
+                type : dataKey,
+                data: scriptData[dataKey]
             })
         })
             .then(response => response.json())
             .then(data => {
                 document.getElementById('status').innerHTML = 'Saved'    
-                console.log('Paragraph saved successfully:', data);
+                console.log( dataKey, ' saved successfully:', data);
             })
             .catch(error => {                    
-                console.error('Error saving paragraph:', error);
+                console.error('Error saving', dataKey, error);
                 alert(error)
             });
     }
 }
+
 
 function sameRow(e1, e2) {
     while(e1 && e1.tagName !== 'TR') {
@@ -193,17 +279,56 @@ function loadParagraphs(scriptData) {
     }
 }
 
+function loadParagraphChanges(scriptChanges) {
+    var sc_changes = document.getElementById('sc');
 
-async function loadData() {
+    scriptChanges.forEach(function(para) {
+        text = para.text
+        text = text.replace(/\n/g,'<br/>')
+        text = text.replace(/<->/g,'<span class="change_red">')
+        text = text.replace(/<\+>/g,'<span class="change_green">')
+        text = text.replace(/<\/>/g,'</span>')
+        var tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="timeline" width='50'>${para.start_timeline}</td>
+            <td><div id="c_${para.index}" class="paragraph">${text}</div></td>`;
+        tr.onclick = onRowClicked 
+        sc_changes.appendChild(tr);
+        tr.getElementsByClassName('paragraph')[0].data = para;               
+    })
 
-    var urlParams = new URLSearchParams(window.location.search);
-    var item_name = urlParams.get('i');
+    var paras =  document.getElementsByClassName('paragraph')
+    var viewportWidth = window.innerWidth;
+    for( ta of paras){
+        ta.style.width = viewportWidth - 700 + 'px';
+    }
+
+}
 
 
-    const [slide_text, script_text, timeline ] = await Promise.all([ 
-            loadFile( 'slide' , item_name , 'json'),
-            loadFile( 'script_fixed' , item_name , 'txt'),
-            loadFile( 'script' , item_name , 'jsonl')
+async function loadPermissions(user_id, item) {
+    try {
+        url = `${api_prefix}permissions/${user_id}/${item}`
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error(error);
+    }      
+}
+
+
+async function loadData(context) {
+    var user_id = context.user_id
+    var item_name = context.item_name
+    var view_changes = context.view_changes
+
+    const [slide_text, paragraphs, timeline ] = await Promise.all([ 
+            loadFile(user_id, 'slide' , item_name , 'json'),
+            loadScript(user_id , item_name , view_changes),
+            loadFile(user_id,  'script' , item_name , 'jsonl')
              ])
     var slideData = JSON.parse(slide_text);
     var timelineData = timeline.split('\n').map(function(line) {
@@ -225,35 +350,6 @@ async function loadData() {
         }
     }
 
-
-    var scriptParagraphs = script_text.match(/[^\[]+\[[\d_]+\]\n\n/g);
-    paragraphs =  scriptParagraphs.map(function(para) {
-        var startIndex = para.indexOf('[');
-        var endIndex = para.indexOf(']');
-        return { 
-            index: para.substring(startIndex + 1, endIndex), 
-            text: para.substring(0, startIndex ) 
-        }
-    }); 
-
-    for(i = 0; i < paragraphs.length; i++) {
-        var para = paragraphs[i];
-        var timelineItem = i > 0 ? timelineDictionary[ paragraphs[i-1].index] : null;
-        if (timelineItem) {
-            start_item =  timelineDictionary[timelineItem.next_item];
-            para.start_time = calcuateTime( start_item.index , start_item.start_time);
-            para.start_timeline = formatTime(para.start_time);
-
-        }
-        else {
-            para.start_timeline = '00:00:00'
-            para.start_time = 0 
-        }
-        this_timeline = timelineDictionary[ paragraphs[i].index]
-        para.end_time = calcuateTime( this_timeline.index, this_timeline.end_time);
-        
-    }
-
     return {
         slides: slideData,
         scripts: paragraphs,
@@ -264,17 +360,14 @@ async function loadData() {
 
 
 
-var scriptData = {}
-var player = null;
 
 function setSlideText(currentTime) {
     for(i = 0; i < scriptData.slides.length; i++) {
         slide = scriptData.slides[i]; 
         if ( currentTime > slide.time && currentTime < (i < scriptData.slides.length -1 ? scriptData.slides[i+1].time: 9999999999)) {
-            var slideTextDiv = document.getElementById('slide_text');
-            slideTextDiv.innerHTML = slide.text; 
-//            simplemde.value(slide.text);
-            
+            var slideTextArea = document.getElementById('slide_text');
+            slideTextArea.value = slide.text;
+            slideTextArea.data = slide;            
             break
         }
     }
@@ -299,22 +392,155 @@ function timeChanged(e) {
             }
         }
     }
+    else {
+        setSlideText(currentTime);
+        var paras =  document.getElementsByClassName('paragraph')
+        for( ta of paras){
+            para = ta.data
+            if( para.end_time > currentTime && para.start_time <= currentTime) {
+                if(ta.style.backgroundColor != 'yellow') {
+                    highlightCurrentPara(ta);
+                }                
+                break;
+            }
+        }
+    
+    }
+}
+
+
+
+
+
+async function loadScript(user_id, item, with_changes) {
+    try {
+        changes = with_changes? 'changes' : 'no_changes'
+        url = `${api_prefix}sermon/${user_id}/${item}/${changes}`
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error(error);
+    }      
+}
+
+
+function onViewChanges(e) {    
+
+    window.location.href = `sermon.html?i=${context.item_name}&c=${!context.view_changes}`;
+}
+
+function setViewChangeButton(view_changes_btn) {
+    var icon = view_changes_btn.getElementsByTagName('i')[0]
+    var label = view_changes_btn.getElementsByTagName('label')[0]
+    if(context.view_changes) {
+        icon.classList.remove('fa-check')
+        icon.classList.add('fa-pen')
+        label.innerText = 'Edit'
+    }
+    else {
+        icon.classList.remove('fa-pen')
+        icon.classList.add('fa-check')
+        label.innerText = 'View Changes'
+    }  
+}
+
+
+
+function setAssignButton(assign_btn) {
+    var icon = assign_btn.getElementsByTagName('i')[0]
+    var label = assign_btn.getElementsByTagName('label')[0]
+    if(permissions && permissions.canAssign) 
+        label.innerText = '認領'
+    else if(permissions && permissions.canUnassign) 
+        label.innerText = '取消認領'
+    else
+        assign_btn.style.display = 'none'
+}   
+
+async function assign_item(action) {
+    try {
+        url = `${api_prefix}assign`
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                user_id: context.user_id,
+                item: context.item_name,
+                action: action
+            })
+
+        })
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        permissions =  await response.json();
+        location.reload();        
+    
+    } catch (error) {
+        console.error(error);
+    }      
+}
+
+
+async function wireup_buttons() {
+    var view_changes_btn = document.getElementById('view_changes_btn');
+    view_changes_btn.addEventListener('click', onViewChanges);
+    setViewChangeButton(view_changes_btn);
+    
+    document.getElementById('home_btn').addEventListener('click', function() {
+        window.location.href = 'index.html';
+    }
+    );
+
+
+    var assign_btn = document.getElementById('assign_btn');
+    setAssignButton(assign_btn);
+    assign_btn.addEventListener('click', function() {
+         assign_item(permissions.canAssign? 'assign' : 'unassign')        
+    }
+    );
+
 }
 
 async function onLoaded() {
-    if(env != 'dev' && !sessionStorage.getItem('userId')) {
-        alert('Please sign into Google')
+
+    var context = await getContext();
+    if(!context)
         return
-    }
+
+    wireup_buttons();
 
 
-    scriptData = await loadData();
+    scriptData = await loadData(context);
 
-    loadParagraphs(scriptData);
+    if(context.view_changes)
+        loadParagraphChanges(scriptData.scripts);
+    else
+        loadParagraphs(scriptData);
 
     player = document.getElementById('player'); 
     player.ontimeupdate = function() {timeChanged()};
     player.src = 'data/video/' + scriptData.item + '.mp4';
+
+
+    var slideTextArea = document.getElementById('slide_text');
+    slideTextArea.readOnly = !(permissions && permissions.canWrite);
+
+    slideTextArea.onchange = function() {
+        slideTextArea = document.getElementById('slide_text');
+        var slide = slideTextArea.data;
+        slide.text = slideTextArea.value;
+        if(!pendingSaves['slides']) {
+            pendingSaves['slides'] = true;
+            setTimeout(saveScript, saveDelay);
+        }
+
+    }
 
     
 }

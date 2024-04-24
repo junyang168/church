@@ -3,91 +3,21 @@
 <meta http-equiv='Content-Type' content='text/html' ; charset='utf-8'>
 
 <head>
-    <title>Video Index</title>
+    <title>羅馬書複習</title>
+    <link rel="icon" type="image/x-icon" href="https://cdn.website-editor.net/1410911f48024acea37d53b26049d3e6/site_favicon_16_1536538107245.ico">
+    <script src="https://kit.fontawesome.com/e69d7c1a7e.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
     <script src="config.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
-
-    <script type="text/javascript">
-        function decodeToken(token) {
-            try {
-                const decoded = jwt_decode(token);
-                console.log(decoded);
-                return decoded;
-            } catch (error) {
-                console.error("Invalid token", error);
-                return null;
-            }
-        }
-
-        function validateTokenClaims(decodedToken) {
-            const currentTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
-
-            // Check if the token is expired
-            if (decodedToken.exp < currentTimestamp) {
-                console.error("Token has expired");
-                return false;
-            }
-            // Additional claim checks
-            // For example, validate issuer or audience
-            if (decodedToken.iss !== 'https://accounts.google.com') {
-                console.error("Invalid issuer");
-                return false;
-            }
-
-            return true; // Token is valid
-        }
-
-        function decodeJwtResponse(token) {
-            const decoded = decodeToken(token);
-            if (decoded && validateTokenClaims(decoded)) {
-                console.log("Token is valid and active.");
-                // Proceed with application logic, e.g., store the token for session management
-                return decoded
-            } else {
-                console.log("Token is invalid or inactive.");
-                // Handle invalid token, e.g., redirect to login
-                return null
-            }
-        }
-
-        function onSignIn(googleUser) {
-            console.log("Succesfully Singed in!!!");
-            const responsePayload = decodeJwtResponse(googleUser.credential);
-            if (responsePayload) {
-                userId = responsePayload.email
-                sessionStorage.setItem('userId', userId);
-                var main = document.getElementsByTagName('main')
-                main[0].style.display = 'block';
-            }
-        }
-
-        window.onload = function () {
-            if( env == 'dev') {
-                var main = document.getElementsByTagName('main')
-                    main[0].style.display = 'block';
-                return;
-            }
-
-            if (sessionStorage.getItem('userId')) {
-                var main = document.getElementsByTagName('main')
-                main[0].style.display = 'block';
-            }
-            else {
-                var main = document.getElementsByTagName('main')
-                main[0].style.display = 'none';
-                alert('Please sign into Google')
-            }
-        };
-
-    </script>
-
+    <script src="index.js"> </script>
+    <link href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.1/dist/js/tabulator.min.js"></script>
 </head>
 
 <body>
     <header>
-
         <div id="g_id_onload" data-client_id="674603198442-bl7rkgeoiig3ei5uan4damdnliipt4sv.apps.googleusercontent.com"
             data-context="signin" data-ux_mode="popup" data-callback="onSignIn" data-auto_prompt="false">
         </div>
@@ -95,29 +25,10 @@
             data-text="signin_with" data-size="large" data-logo_alignment="left">
         </div>
     </header>
-    <main style="display: none;">
-        <h1>王教授讲道目录</h1>
-        <ul>
-            <li><a href='sermon.html?i=2019-2-15%20%E5%BF%83mp4'>2019-2-15 心mp4</a></li>
-            <li><a href='sermon.html?i=2019-2-18%20%E8%89%AF%E5%BF%83'>2019-2-18 良心</a></li>
-            <li><a href='sermon.html?i=2019-3-17%20%E6%8C%BD%E5%9B%9E%E7%A5%AD'>2019-3-17 挽回祭</a></li>
-            <li><a href='sermon.html?i=2019-3-24%20%E7%BD%97%E9%A9%AC%E4%B9%A63%E7%AB%A021%E8%87%B331%E8%8A%82'>2019-3-24
-                    罗马书3章21至31节</a></li>
-            <li><a
-                    href='sermon.html?i=2019-3-31%20%E5%AE%97%E4%B8%BB%E5%9B%BD%E4%B8%8E%E9%99%84%E5%BA%B8%E5%9B%BD%E7%9A%84%E7%BA%A6'>2019-3-31
-                    宗主国与附庸国的约</a></li>
-            <li><a href='sermon.html?i=2019-4-4%20%E7%A5%9E%E7%9A%84%E5%9C%8B%20'>2019-4-4 神的國 </a></li>
-            <li><a href='sermon.html?i=2019-4-7%20%E7%BD%97%E9%A9%AC%E4%B9%A64%E7%AB%A01%E8%87%B325%E8%8A%82'>2019-4-7
-                    罗马书4章1至25节</a></li>
-            <li><a href='sermon.html?i=2019-4-14%20%E7%BD%974%201-25%20%E5%9B%A0%E4%BF%A1%E6%88%90%E4%B9%89'>2019-4-14
-                    罗4 1-25 因信成义</a></li>
-            <li><a href='sermon.html?i=2019-04-21%20%E8%80%B6%E7%A8%A3%E7%9A%84%E7%A9%BA%E5%9D%9F%E5%A2%93'>2019-04-21
-                    耶稣的空坟墓</a></li>
-            <li><a href='sermon.html?i=2019-05-12%20%E5%9C%A3%E7%81%B5%E5%85%85%E6%BB%A1'>2019-05-12 圣灵充满</a></li>
-            <li><a href='sermon.html?i=2019-05-19%20%E5%96%9C%E4%B9%90'>2019-05-19 喜乐</a></li>
-            <li><a href='sermon.html?i=2019-05-26%20%E7%BD%97%E9%A9%AC%E4%B9%A65%E7%AB%A01%E8%87%B32%E8%8A%82'>2019-05-26
-                    罗马书5章1至2节</a></li>
-        </ul>
+    <main>
+        <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">羅馬書複習</h1>
+        <h3 class="text-3xl font-bold dark:text-white">共有<span id="total_number"></span>個視頻和音頻</div>
+        <div id="sermons-table"></div>
     </main>
 </body>
 

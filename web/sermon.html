@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <html>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">   
+    <meta id="view" name="viewport" content="initial-scale=1, minimum-scale=1, maximum-scale=5, viewport-fit=cover">
     <head>
+        <title>羅馬書複習</title>
+        <script src="https://kit.fontawesome.com/e69d7c1a7e.js" crossorigin="anonymous"></script>
         <link rel="stylesheet" href="styles.css">
+        <link rel="icon" type="image/x-icon" href="https://cdn.website-editor.net/1410911f48024acea37d53b26049d3e6/site_favicon_16_1536538107245.ico">
+        <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://apis.google.com/js/platform.js" async defer></script>
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
@@ -13,6 +18,7 @@
     </head>
     <body>
         <header>
+
             <div id="g_id_onload"
             data-client_id="674603198442-bl7rkgeoiig3ei5uan4damdnliipt4sv.apps.googleusercontent.com"
             data-context="signin"
@@ -29,21 +35,39 @@
             data-logo_alignment="left">
         </div>  
         </header>
-        <div id="main" style="display: flex; height: 100vh;">
+        <div class="flex md:flex md:flex-grow flex-row justify-end space-x-1">
+            <div class="inline-flex rounded-md shadow-sm" role="group">
+                <button type="button" id="home_btn" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white">
+                    <i class="fa-solid fa-house w-3 h-3 me-2"></i>
+                    返回
+                </button>
+                <button type="button" id="assign_btn" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white">
+                    <i class="fa-solid fa-list-check w-3 h-3 me-2"></i>   
+                    <label>Assign</label>
+                    </button>
+                <button type="button" id="view_changes_btn" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white">
+                    <i class="fa-solid fa-check w-3 h-3 me-2"></i>
+                    <label>View Changes</label>
+                </button>
+              </div>    
+                          
+        </div>
+        <div id="main" style="display: flex; height: 100vh; padding-left:10px;padding-right:20px">
             <div style="width: 602px; background-color: lightgray;">
                 <div style="background-color: lightblue;">
                     <video width="600px" id="player" controls>
                         <source type="video/mp4" >
                     </video>
                 </div>
-                <div style="flex-grow: 1; " id="slide_text">
+                <div style="flex-grow: 1; ">
+                    <textarea id="slide_text"></textarea>
                 </div>
                 <div id="demo"></div>
                 <div id="status" style="align-self: flex-end;" id="status"></div>
             </div>
             <div style="flex-grow: 1; height: 100%; overflow-y: scroll;" >
                 <table width="100%" id="sc">
-                </table>                        
+                </table>  
             </div>
         </div>
     </body>
