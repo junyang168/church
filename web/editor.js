@@ -327,7 +327,11 @@ async function loadData(context) {
 
     const [slide_text, paragraphs, timeline ] = await Promise.all([ 
             loadFile(user_id, 'slide' , item_name , 'json'),
+<<<<<<< HEAD
             loadScript(user_id , item_name , view_changes),
+=======
+            loadFile(user_id,  'script_patched' , item_name , 'json'),
+>>>>>>> 27c710a (add patch processor to fix data issue. add status)
             loadFile(user_id,  'script' , item_name , 'jsonl')
              ])
     var slideData = JSON.parse(slide_text);
@@ -350,6 +354,33 @@ async function loadData(context) {
         }
     }
 
+<<<<<<< HEAD
+=======
+
+    var paragraphs = JSON.parse(script_text);
+
+    for(i = 0; i < paragraphs.length; i++) {
+        var para = paragraphs[i];
+        var timelineItem = i > 0 ? timelineDictionary[ paragraphs[i-1].index] : null;
+        if (timelineItem) {
+            start_item =  timelineDictionary[timelineItem.next_item];
+            para.start_time = calcuateTime( start_item.index , start_item.start_time);
+            para.start_timeline = formatTime(para.start_time);
+
+        }
+        else {
+            para.start_timeline = '00:00:00'
+            para.start_time = 0 
+        }
+        this_timeline = timelineDictionary[ paragraphs[i].index]
+        if(this_timeline)
+            para.end_time = calcuateTime( this_timeline.index, this_timeline.end_time);
+        else
+            para.end_time = 9999999999;
+        
+    }
+
+>>>>>>> 27c710a (add patch processor to fix data issue. add status)
     return {
         slides: slideData,
         scripts: paragraphs,
