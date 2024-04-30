@@ -77,26 +77,7 @@ async function onLoaded() {
 
     sermons = await getSermons(user_id)
 
-<<<<<<< HEAD
     document.getElementById('total_number').innerText = sermons.length
-=======
-    sc = document.getElementById('surmons');
-    while (sc.firstChild) {
-        sc.removeChild(sc.firstChild);
-    }
-
-    surmons.forEach(surmon => {
-        var tr = document.createElement('tr');        
-        tr.className = "bg-white border-b dark:bg-gray-800 dark:border-gray-700"
-        
-        tr.innerHTML = `
-            <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"><a href="sermon.html?i=${encodeURIComponent(surmon.item)}" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">${surmon.item}</td>
-            <td class="px-2 py-4">${surmon.assigned_to_name || ''}</td>
-            <td class="px-2 py-4">${surmon.author_name || ''}</td>
-            <td class="px-2 py-4">${surmon.last_updated || ''}</td>
-            <td class="px-2 py-4">${surmon.status || ''}</td>`
-        sc.appendChild(tr);
->>>>>>> 27c710a (add patch processor to fix data issue. add status)
 
     var table = new Tabulator("#sermons-table", {
         data:sermons, //assign data to table
@@ -109,7 +90,7 @@ async function onLoaded() {
                     return "<i class='fa-solid fa-video'></i>";
                  }
              }},          
-            {title:"標題", width:600, formatter:"link", formatterParams:function(cell){
+            {title:"標題", width:500, formatter:"link", formatterParams:function(cell){
                 var sermon = cell.getRow().getData();
                 url = sermon.status != 'in development' ?  `sermon.html?i=${encodeURIComponent(sermon.item)}` : '#'
                 return {

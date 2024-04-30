@@ -62,24 +62,10 @@ def load(user_id:str, type:str, item: str, ext:str='txt')->str:
 def update_script(request: UpdateRequest):
     return sm.sermonManager.update_sermon(request.user_id, request.type, request.item, request.data)
 
-<<<<<<< HEAD
 
 @app.get("/api/sermon/{user_id}/{item}/{changes}")
 def get_sermon(user_id:str, item: str, changes:str = None): 
     return sm.sermonManager.get_sermon_detail(user_id,item,changes)
-=======
-    folder = 'slide' if request.type == 'slides' else 'script_patched'
-
-    file_path = get_file_path(folder, request.item, '.json')
-
-    with open(file_path, "w") as file:
-        data_dicts = [p.dict() for p in request.data]
-        json.dump(data_dicts, file)    
-        
-    save_to_s3(file_path, 'dallas-holy-logos', folder + '/' + request.item + '.json', request.user_id)
-
-    return {"message": f"{request.type} updated successfully"}
->>>>>>> 27c710a (add patch processor to fix data issue. add status)
 
 @app.get("/api/permissions/{user_id}/{item}")
 def get_permissions(user_id:str,item:str) -> sm.Permission:
