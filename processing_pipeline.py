@@ -43,10 +43,6 @@ class ProcessingPipeline:
         except KeyError:
             return pd.NA
     
-
-
-
-
     def get_file_index(self, fname:str):
         if '_' not in fname:
             return 1

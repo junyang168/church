@@ -80,6 +80,13 @@ def get_sermons(user_id:str) -> List[sm.Sermon]:
 def assigned_to(req: AssignRequest):
     return sm.sermonManager.assign(req.user_id, req.item,req.action)
 
+@app.get("/api/bookmark/{user_id}/{item}")
+def get_bookmark(user_id:str, item:str):
+    return sm.sermonManager.get_bookmark(user_id, item)
+
+@app.put("/api/bookmark/{user_id}/{item}/{index}")
+def set_bookmark(user_id:str, item:str, index:str):
+    return sm.sermonManager.set_bookmark(user_id, item, index)
 
 
 if __name__ == "__main__":

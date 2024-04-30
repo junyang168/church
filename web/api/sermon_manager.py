@@ -11,6 +11,7 @@ from watchdog.events import FileSystemEventHandler
 import boto3
 from pydantic import BaseModel
 from sermon_meta import Sermon, SermonMetaManager
+from sermon_comment import SermonCommentManager
 
 
 class Permission(BaseModel):
@@ -33,6 +34,7 @@ class SermonManager:
         self.config_folder =  os.path.join(self.base_folder, "config")
         self._acl = AccessControl(self.base_folder)
         self._sm = SermonMetaManager(self.base_folder, self._acl.get_user)
+        self._scm = SermonCommentManager()
 
 
         refreshers = [self._acl.get_refresher(), self._sm.get_refresher()]
@@ -143,6 +145,20 @@ class SermonManager:
 
         return self.get_sermon_permissions(user_id, item)
     
+    def get_bookmark(self, user_id:str, item:str):
+        permissions = self.get_sermon_permissions(user_id, item)
+        if not permissions.canRead:
+            return  {"message": "You don't have permission to update this item"}
+        
+        return self._scm.get_bookmark(user_id, item)
+
+    def set_bookmark(self, user_id:str, item:str, index:str):
+        permissions = self.get_sermon_permissions(user_id, item)
+        if not permissions.canWrite:
+            return  {"message": "You don't have permission to update this item"}
+        
+        self._scm.set_bookmark(user_id, item, index)
+        return {"message": "bookmark has been set"}
 
 
 

@@ -32,6 +32,13 @@ main {
     font-size: 80%;
     font-style: italic;
     vertical-align: super;
+    cursor: pointer;
+}
+
+.caret {
+    display:table-cell;
+    vertical-align: super;
+    cursor: pointer;
 }
 
 

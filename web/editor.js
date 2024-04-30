@@ -249,7 +249,73 @@ function getTextAreInRow(e) {
     return e.getElementsByClassName('paragraph')[0];
 }
 
-function onRowClicked(e) {
+
+function matchCaret(caret, e, byIndx) {
+    if( byIndx)
+        return caret.data.index == e
+    else
+        return caret == e
+}
+
+function setBookMark( e, byIndx ) {
+    if(!e) 
+        rerurn;
+    sc = document.getElementById('sc');
+    var carets =  document.getElementsByClassName('caret')
+    var matachedCaret = null
+    for( var caret of carets){
+        icon = caret.getElementsByTagName('i').length
+        matched  = matchCaret(caret, e, byIndx)
+        if( icon == 0 && matched) {
+            matachedCaret = caret
+            caret.innerHTML = '<i class="fa-solid fa-caret-right"></i>';
+            caret.nextElementSibling.style.color = 'black';
+            caret.nextElementSibling.style.fontWeight = 'bold';
+        }
+        else if (icon > 0 && !matched) {
+            caret.innerHTML = '';   
+            caret.nextElementSibling.style.color = 'grey';
+            caret.nextElementSibling.style.fontWeight = 'lighter';
+        }
+    }
+    return matachedCaret
+}
+
+async function loadBookark() {
+    try {
+        url =  api_prefix + `bookmark/${context.user_id}/${context.item_name}`    
+        const response = await fetch(url );
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        bookmark =  await response.json();
+        bm = setBookMark(bookmark.index, true)
+//        if(bm)
+//            bm.scrollIntoView();
+        
+    } catch (error) {
+        console.error(error);
+    }      
+}
+
+async function updateBookmark(caret, byIndx) {
+    setBookMark(caret, byIndx)    
+    try {
+        var index = byIndx?caret:caret.data.index;
+        url =  api_prefix + `bookmark/${context.user_id}/${context.item_name}/${index}`    
+        const response = await fetch(url, { method: 'PUT'} );
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        data =  await response.json();
+        
+    } catch (error) {
+        console.error(error);
+    }      
+}
+
+async function onRowClicked(e) {
+
     if(simplemde) {
         ta = simplemde.element
         if(sameRow(e.target, ta))
@@ -258,6 +324,12 @@ function onRowClicked(e) {
     para_id = getTextAreInRow(e.target).id;
 
     turnOnEditor(para_id);
+
+    if( e.target.classList.contains('caret') )
+        updateBookmark(e.target, false);
+    else if (e.target.classList.contains('timeline')) 
+        updateBookmark(e.target.previousElementSibling, false);
+
 }
 
 function loadParagraphs(scriptData) {
@@ -266,11 +338,13 @@ function loadParagraphs(scriptData) {
     scriptData.scripts.forEach(function(para) {
         var tr = document.createElement('tr');
         tr.innerHTML = `
+            <td class="caret" width='20'></td>
             <td class="timeline" width='50'>${para.start_timeline}</td>
             <td><textarea id="${para.index}" readonly class="paragraph">${para.text}</textarea></td>`;
         tr.onclick = onRowClicked 
         sc.appendChild(tr);
         tr.getElementsByClassName('paragraph')[0].data = para;               
+        tr.getElementsByClassName('caret')[0].data = para;               
     })
 
     var paras =  document.getElementsByClassName('paragraph')
@@ -318,7 +392,6 @@ async function loadPermissions(user_id, item) {
         console.error(error);
     }      
 }
-
 
 async function loadData(context) {
     var user_id = context.user_id
@@ -541,6 +614,8 @@ async function onLoaded() {
         }
 
     }
+
+    loadBookark();
 
     
 }

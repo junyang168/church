@@ -1,9 +1,21 @@
 import json
 import datetime
+import boto3
+import os
 
 def update_metadata(metadata_file: str, items: list, type: str):
-    with open(metadata_file, 'r') as f:
-        sermons = json.load(f)
+    aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+    aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+    s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+    bucket_name = 'dallas-holy-logos'
+    sermon_key = 'config/sermon_dev.json'
+    try:
+        response = s3.get_object(Bucket=bucket_name, Key=sermon_key)
+        sermons_data =  response['Body'].read().decode('utf-8')
+        sermons =  json.loads(sermons_data)
+    except Exception as e:
+        sermons = []
+
     
     for item in items:
         sermon = next((sermon for sermon in sermons if sermon['item'] == item), None)
@@ -21,5 +33,6 @@ def update_metadata(metadata_file: str, items: list, type: str):
         deliver_date, title = item.split(' ',1)
         sermon['deliver_date'] =  deliver_date
         sermon['title'] =  title
-    with open(metadata_file, 'w', encoding='UTF-8') as f:
-        json.dump(sermons, f, ensure_ascii=False, indent=4)
+
+    sermons_data = json.dumps(sermons, ensure_ascii=False)
+    s3.put_object(Body=sermons_data, Bucket=bucket_name, Key=sermon_key)
