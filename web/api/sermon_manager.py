@@ -38,7 +38,7 @@ class SermonManager:
         refreshers = [self._acl.get_refresher(), self._sm.get_refresher()]
         event_handler = ConfigFileEventHandler(refreshers)
         observer = Observer()
-        observer.schedule(event_handler, os.path.dirname(self.config_folder), recursive=False)
+        observer.schedule(event_handler, os.path.dirname(self.config_folder + '/config.json'), recursive=False)
         observer.start()
 
 

@@ -171,7 +171,7 @@ class ScriptDelta:
         s3.upload_file(file_path, bucket_name, object_key, ExtraArgs={'Metadata': {'author': author}})
     
   
-    def save_script(self, type:str, user_id:str, item:str, data):
+    def save_script(self,user_id:str, type:str, item:str, data):
         #update local file        
         folder = 'slide' if type == 'slides' else 'script_review'
         file_path = os.path.join(self.base_folder, folder, item + '.json')  
