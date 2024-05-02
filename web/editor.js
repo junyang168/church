@@ -82,7 +82,7 @@ function onKeyup(cm,event) {
         var nextRow = direction=='Next'? parent.nextElementSibling : parent.previousElementSibling
         if(nextRow ) {
             nextPara = nextRow.getElementsByClassName('paragraph')[0]
-            turnOnEditor(nextPara.id)
+            turnOnEditor(nextPara)
         }
 
     }
@@ -114,19 +114,38 @@ function highlightCurrentPara(current_para) {
     return true
 }
 
-function turnOnEditor(para_id) {
-    current_para = document.getElementById(para_id)
+function turnOnEditor(current_para) {
     syncPlayerSlide(current_para.data.start_time);
 
     if( highlightCurrentPara(current_para) )
         return
 
+    var textarea = document.createElement('textarea');
+    textarea.className = 'paragraph_textarea';
+    textarea.style.width = '100%';
+    textarea.style.height = '200px';
+    textarea.value = current_para.textContent;
+    textarea.data = current_para.data;
+    
+    current_para.parentNode.insertBefore(textarea, current_para.nextSibling);
+    current_para.style.display = 'none';
+
     if(simplemde) {
+        var currTA = simplemde.element
+        currTA.previousElementSibling.style.display = 'block';
         simplemde.toTextArea();
+        currTA.parentNode.removeChild(currTA);        
         simplemde = null
     }
     simplemde = new SimpleMDE({ 
-        toolbar: ["bold", "italic", "strikethrough", 
+        toolbar: [
+        {
+            name: "Question",
+            action: SimpleMDE.toggleItalic,
+            className: "fa-solid fa-question",
+            title: "Question (Ctrl+I)",
+        },        
+        "strikethrough", 
         {
             name: "undo",
             action: function(editor) {
@@ -135,7 +154,7 @@ function turnOnEditor(para_id) {
             className: "fa fa-undo", // Font Awesome icon class
             title: "Undo",
         },        
-        "link", "image","quote", "horizontal-rule", "preview", "side-by-side", "fullscreen","|",
+        "bold", "link", "image","quote", "horizontal-rule", "preview", "side-by-side", "fullscreen","|",
         {
             name: "play",
             action: function(editor) {
@@ -169,7 +188,7 @@ function turnOnEditor(para_id) {
   
     ],
     status: false,
-        element: current_para , 
+        element: textarea , 
     });
     simplemde.codemirror.on('keydown', onKeydown);         
     simplemde.codemirror.on('keyup', onKeyup);         
@@ -317,9 +336,9 @@ async function onRowClicked(e) {
         if(sameRow(e.target, ta))
             return;
     }
-    para_id = getTextAreInRow(e.target).id;
+    ta = getTextAreInRow(e.target);
 
-    turnOnEditor(para_id);
+    turnOnEditor(ta);
 
     if( e.target.classList.contains('caret') )
         updateBookmark(e.target, false);
@@ -327,6 +346,7 @@ async function onRowClicked(e) {
         updateBookmark(e.target.previousElementSibling, false);
 
 }
+
 
 function loadParagraphs(scriptData) {
 
@@ -336,17 +356,13 @@ function loadParagraphs(scriptData) {
         tr.innerHTML = `
             <td class="caret" width='20'></td>
             <td class="timeline" width='50'>${para.start_timeline}</td>
-            <td><textarea id="${para.index}" readonly class="paragraph">${para.text}</textarea></td>`;
+            <td><div class="paragraph">${marked.parse(para.text.trim())}</div></td>`;
         tr.onclick = onRowClicked 
         sc.appendChild(tr);
         tr.getElementsByClassName('paragraph')[0].data = para;               
         tr.getElementsByClassName('caret')[0].data = para;               
     })
 
-    var paras =  document.getElementsByClassName('paragraph')
-    for( ta of paras){
-        ta.style.height = ta.scrollHeight + 'px';
-    }
 }
 
 function loadParagraphChanges(scriptChanges) {
@@ -367,11 +383,6 @@ function loadParagraphChanges(scriptChanges) {
         tr.getElementsByClassName('paragraph')[0].data = para;               
     })
 
-    var paras =  document.getElementsByClassName('paragraph')
-    var viewportWidth = window.innerWidth;
-    for( ta of paras){
-        ta.style.width = viewportWidth - 700 + 'px';
-    }
 
 }
 

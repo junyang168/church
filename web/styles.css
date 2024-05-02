@@ -5,6 +5,19 @@
     background-color: #f2f2f2;
 }
 
+em {
+    font-style: italic;
+    font-weight: bold;
+    color: red;
+
+}
+
+del {
+    text-decoration: line-through;
+    font-weight: lighter;
+    color: grey;
+}
+
 header{
     background-color: lightblue;
     color: #f2f2f2;
@@ -53,12 +66,25 @@ main {
     width: 100%;
     font-size: 12pt;
     height: auto;
-    resize: none;
     border: none;
     outline: none;  
     overflow-y: auto;
     background-color: inherit;
 }
+
+.paragraph_textarea {
+    width: 100%;
+    font-size: 12pt;
+    height: auto;
+    resize: none;
+    border: none;
+    outline: none;  
+    overflow-y: auto;
+    background-color: inherit;
+    display: none;
+}
+
+
 
 #slide_text {
     width: 99%;
