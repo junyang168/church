@@ -1,54 +1,3 @@
-function decodeToken(token) {
-    try {
-        const decoded = jwt_decode(token);
-        console.log(decoded);
-        return decoded;
-    } catch (error) {
-        console.error("Invalid token", error);
-        return null;
-    }
-}
-
-function validateTokenClaims(decodedToken) {
-    const currentTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
-
-    // Check if the token is expired
-    if (decodedToken.exp < currentTimestamp) {
-        console.error("Token has expired");
-        return false;
-    }
-    // Additional claim checks
-    // For example, validate issuer or audience
-    if (decodedToken.iss !== 'https://accounts.google.com') {
-        console.error("Invalid issuer");
-        return false;
-    }
-
-    return true; // Token is valid
-}
-
-function decodeJwtResponse(token) {
-    const decoded = decodeToken(token);
-    if (decoded && validateTokenClaims(decoded)) {
-        console.log("Token is valid and active.");
-        // Proceed with application logic, e.g., store the token for session management
-        return decoded
-    } else {
-        console.log("Token is invalid or inactive.");
-        // Handle invalid token, e.g., redirect to login
-        return null
-    }
-}
-
-function onSignIn(googleUser) {
-    console.log("Succesfully Singed in!!!");
-    const responsePayload = decodeJwtResponse(googleUser.credential);
-    if (responsePayload) {
-        userId = responsePayload.email
-        sessionStorage.setItem('userId', userId);
-        onLoaded()
-    }
-}
 
 
 async function getSermons(user_id) {
@@ -65,15 +14,10 @@ async function getSermons(user_id) {
 }
 
 
-
 async function onLoaded() {
 
-   if(env != 'dev' && !sessionStorage.getItem('userId')) {
-        alert('Please sign into Google')
-        return
-    }
-    
-    user_id = env != 'dev' ? sessionStorage.getItem('userId') : 'junyang168@gmail.com'
+    user_id = checkSignin();
+    if(!user_id) return;
 
     sermons = await getSermons(user_id)
 

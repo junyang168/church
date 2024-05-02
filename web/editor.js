@@ -18,10 +18,6 @@ async function loadFile(user_id, type, item_name, ext) {
     }      
 }
 
-function getUserId() {
-    return  user_id = env != 'dev' ? sessionStorage.getItem('userId') : 'junyang168@gmail.com'
-
-}
 
 async function getContext() {
 
@@ -259,7 +255,7 @@ function matchCaret(caret, e, byIndx) {
 
 function setBookMark( e, byIndx ) {
     if(!e) 
-        rerurn;
+        return null;
     sc = document.getElementById('sc');
     var carets =  document.getElementsByClassName('caret')
     var matachedCaret = null
@@ -581,6 +577,9 @@ async function wireup_buttons() {
 }
 
 async function onLoaded() {
+
+    if(!checkSignin())
+        return;
 
     var context = await getContext();
     if(!context)
