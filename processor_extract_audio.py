@@ -31,6 +31,11 @@ class ProcessorExtractAudio(Processor):
         fname = self.get_file_full_path_name(input_folder, item_name)   
         video_clip = VideoFileClip(fname)
 
+        # Extract audio into mp3 file
+        mp3_file_name = f"{output_folder}/{item_name}.mp3"
+        video_clip.audio.write_audiofile(mp3_file_name, codec='mp3')
+        return
+
 
         chunks = math.ceil(video_clip.duration / self.duration_in_seconds)
         video_clip.close()

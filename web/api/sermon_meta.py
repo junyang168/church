@@ -15,8 +15,10 @@ class Sermon(BaseModel):
     status: Optional[str] = None
     assigned_to: Optional[str] = None
     assigned_to_name: Optional[str] = None
+    assigned_to_date: Optional[str] = None
     title: Optional[str] = None
     deliver_date: Optional[str] = None
+    published_date: Optional[str] = None
     summary: Optional[str] = None
     type: Optional[str] = None
 
@@ -89,11 +91,13 @@ class SermonMetaManager:
         
         self.sermons = [Sermon( item=m.get('item'),
                                assigned_to= m.get('assigned_to'), 
+                               assigned_to_date=m.get('assigned_to_date'),
                                status= m.get('status'), 
                                summary=m.get('summary'), 
                                title=m.get('title') ,
                                deliver_date=m.get('deliver_date'),
-                               type=m.get('type')
+                               type=m.get('type'),
+                                 published_date=m.get('published_date')
                                  ) for m in sermon_meta]
         self.format_delivery_date()
 

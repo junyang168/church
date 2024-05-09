@@ -74,14 +74,27 @@ function getUserId() {
 
 
 function checkSignin() {
+    var main = document.getElementsByTagName('main')[0]
+    var msg = document.getElementById("signin_msg");
+
     if(  env =='production' && !sessionStorage.getItem('userId')) {
-        alert('Please sign into Google')
+        if(main)
+            main.style.display = "none";
+        if( msg) 
+            msg.style.display = "block";
+        else
+            alert('Please sign into Google')
         return null;
     }
     else if (env == 'dev') {    
             sessionStorage.setItem('userId', 'junyang168@gmail.com')
             sessionStorage.setItem('picture','https://lh3.googleusercontent.com/a/ACg8ocKPLUaez5y6suLdpjEb6453tOtm_AyXXR1JgIJZLW3xeOKRO7aN=s96-c')
     }
+
+    if(main)
+        main.style.display = 'block'
+    if(msg) 
+        msg.style.display = "none";  
 
     user_id = getUserId()
     showUserProfile()    

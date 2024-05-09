@@ -7,14 +7,15 @@
     <link rel="icon" type="image/x-icon" href="https://cdn.website-editor.net/1410911f48024acea37d53b26049d3e6/site_favicon_16_1536538107245.ico">
     <script src="https://kit.fontawesome.com/e69d7c1a7e.js" crossorigin="anonymous"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="styles.css">
-    <script src="config.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
-    <script src="signin.js"> </script>
-    <script src="index.js"> </script>
     <link href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css" rel="stylesheet">
     <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.1/dist/js/tabulator.min.js"></script>
+
+    <link rel="stylesheet" href="styles.css?v=0509">
+    <script src="config.js?=0509"></script>
+    <script src="signin.js?v=0509"> </script>
+    <script src="index.js?v=0509"> </script>
 </head>
 
 <body>
@@ -29,10 +30,12 @@
             data-text="signin_with" data-size="large" data-logo_alignment="left">
         </div>
     </header>
+    <h3 class="text-3xl font-bold" id="signin_msg" >歡迎來到羅馬書複習網站, 登錄請點擊右上方Google Sign In </h3>
     <main>
         <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-greay-900">羅馬書複習</h1>
         <h3 class="text-3xl font-bold">共有<span id="total_number"></span>個視頻和音頻</div>
-        <div id="sermons-table"></div>
+            <div id="sermons-table"></div>
+        </div>
     </main>
 </body>
 

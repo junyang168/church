@@ -34,9 +34,9 @@ async function onLoaded() {
                     return "<i class='fa-solid fa-video'></i>";
                  }
              }},          
-            {title:"標題", width:500, formatter:"link", formatterParams:function(cell){
+            {title:"標題", width:350, formatter:"link", formatterParams:function(cell){
                 var sermon = cell.getRow().getData();
-                url = sermon.status != 'in development' ?  `sermon.html?i=${encodeURIComponent(sermon.item)}` : '#'
+                url = sermon.status != 'in development' ?  `sermon.html?v=0509&i=${encodeURIComponent(sermon.item)}` : '#'
                 return {
                     label: sermon.title, 
                     url: url
@@ -44,6 +44,8 @@ async function onLoaded() {
             }},            
             {title:"發布日期", field:"deliver_date", sorter:"string", width:150},
             {title:"認領人", field:"assigned_to_name", sorter:"string", width:100},
+            {title:"認領日期", field:"assigned_to_date", sorter:"string", width:100},
+            {title:"完成日期", field:"published_date", sorter:"string", width:100},
             {title:"更新人", field:"author_name", sorter:"string", width:100},
             {title:"更改日期", field:"last_updated", sorter:"string", width:150},
             {title:"Status", field:"status", sorter:"string"}

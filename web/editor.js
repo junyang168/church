@@ -73,7 +73,7 @@ function onKeyup(cm,event) {
     direction = null
     if(event.key === 'ArrowDown' && pos.line === lineCount - 1 && currentPos && currentPos.ch == pos.ch) 
         direction = 'Next'
-    else if (event.key === 'ArrowUp' && pos.line === 0)
+    else if (event.key === 'ArrowUp' && pos.line === 0 && currentPos && currentPos.ch == pos.ch)
         direction = 'Prev'
 
     if(direction) {
@@ -93,7 +93,7 @@ function onKeydown(cm,event) {
     var pos = cm.getCursor();
     var lineCount = cm.lineCount();
     currentPos = null   
-    if(event.key === 'ArrowDown' && pos.line === lineCount - 1) 
+    if(event.key === 'ArrowDown' && pos.line === lineCount - 1 || event.key === 'ArrowUp' && pos.line === 0) 
         currentPos = pos;
 }
 
@@ -194,8 +194,12 @@ function turnOnEditor(current_para) {
     simplemde.codemirror.on('keyup', onKeyup);         
     simplemde.codemirror.on('change', function() {
         var updatedContent = simplemde.value();
+
         var para = simplemde.element.data;
         para.text = updatedContent;
+        simplemde.element.previousElementSibling.innerHTML = marked.parse(updatedContent);
+
+
 
         if(!pendingSaves['scripts']) {
             pendingSaves['scripts'] = true;
@@ -357,7 +361,7 @@ function loadParagraphs(scriptData) {
             <td class="caret" width='20'></td>
             <td class="timeline" width='50'>${para.start_timeline}</td>
             <td><div class="paragraph">${marked.parse(para.text.trim())}</div></td>`;
-        tr.onclick = onRowClicked 
+        tr.ondblclick = onRowClicked 
         sc.appendChild(tr);
         tr.getElementsByClassName('paragraph')[0].data = para;               
         tr.getElementsByClassName('caret')[0].data = para;               
@@ -513,32 +517,19 @@ function onViewChanges(e) {
 }
 
 function setViewChangeButton(view_changes_btn) {
-    var icon = view_changes_btn.getElementsByTagName('i')[0]
+    var img = view_changes_btn.getElementsByTagName('img')[0]
     var label = view_changes_btn.getElementsByTagName('label')[0]
     if(context.view_changes) {
-        icon.classList.remove('fa-check')
-        icon.classList.add('fa-pen')
-        label.innerText = 'Edit'
+        img.src = 'images/icons8-edit-30.png'
+        label.innerText = '編輯'
     }
     else {
-        icon.classList.remove('fa-pen')
-        icon.classList.add('fa-check')
+        img.src = 'images/icons8-change-24.png'
         label.innerText = 'View Changes'
     }  
 }
 
 
-
-function setAssignButton(assign_btn) {
-    var icon = assign_btn.getElementsByTagName('i')[0]
-    var label = assign_btn.getElementsByTagName('label')[0]
-    if(permissions && permissions.canAssign) 
-        label.innerText = '認領'
-    else if(permissions && permissions.canUnassign) 
-        label.innerText = '取消認領'
-    else
-        assign_btn.style.display = 'none'
-}   
 
 async function assign_item(action) {
     try {
@@ -567,6 +558,41 @@ async function assign_item(action) {
 }
 
 
+function setAssignButton(assign_btn) {
+    var icon = assign_btn.getElementsByTagName('i')[0]
+    var label = assign_btn.getElementsByTagName('label')[0]
+    if(permissions && permissions.canAssign) 
+        label.innerText = '認領'
+    else if(permissions && permissions.canUnassign) 
+        label.innerText = '取消認領'
+    else
+        assign_btn.style.display = 'none'
+}   
+
+function setPublishButton(publish_btn) {    
+    if(permissions && permissions.canPublish) 
+        publish_btn.style.display = 'block'
+    else
+        publish_btn.style.display = 'none'
+}
+
+async function publish_item() {
+    try {
+        url = `${api_prefix}publish/${context.user_id}/${context.item_name}`
+        const response = await fetch(url, { method: 'PUT' })
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        resp =  await response.json();
+        alert(resp.message)
+        location.reload();
+    
+    } catch (error) {
+        console.error(error);
+    }      
+}
+
+
 async function wireup_buttons() {
     var view_changes_btn = document.getElementById('view_changes_btn');
     view_changes_btn.addEventListener('click', onViewChanges);
@@ -584,6 +610,21 @@ async function wireup_buttons() {
          assign_item(permissions.canAssign? 'assign' : 'unassign')        
     }
     );
+
+    var publish_btn = document.getElementById('publish_btn');
+    setPublishButton(publish_btn);
+    publish_btn.addEventListener('click', function() {
+         publish_item()        
+    }
+    );
+
+    var view_finished_btn = document.getElementById('view_finished_btn');
+    view_finished_btn.addEventListener('click', function() {
+        window.open(`public/${context.item_name}`, '_blank');
+    }
+    );
+    if(!permissions || !permissions.canViewPublished) 
+        view_finished_btn.style.display = 'none'
 
 }
 

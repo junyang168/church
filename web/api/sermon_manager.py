@@ -20,6 +20,8 @@ class Permission(BaseModel):
     canAssign: bool
     canUnassign: bool
     canAssignAnyone: bool
+    canPublish: bool 
+    canViewPublished: bool 
  
 
 #SermanManager is responsible for managing 
@@ -29,12 +31,16 @@ class Permission(BaseModel):
 class SermonManager:
 
     def __init__(self) -> None:
+
+
         api_folder = os.path.dirname(os.path.abspath(__file__))
         self.base_folder = os.path.join(api_folder, '..', 'data')
         self.config_folder =  os.path.join(self.base_folder, "config")
         self._acl = AccessControl(self.base_folder)
         self._sm = SermonMetaManager(self.base_folder, self._acl.get_user)
         self._scm = SermonCommentManager()
+
+
 
 
         refreshers = [self._acl.get_refresher(), self._sm.get_refresher()]
@@ -74,15 +80,22 @@ class SermonManager:
 
     def get_sermons(self, user_id:str):
         return self._sm.sermons
+    
+
+    def get_no_permission(self):
+        return Permission(canRead=False, canWrite=False, canAssign=False, canUnassign=False, canAssignAnyone=False)
+    
+    
 
 
     def get_sermon_permissions(self, user_id:str, item:str):
         sermon = self._sm.get_sermon_metadata(user_id, item)
         if not sermon:
-            return Permission(canRead=False, canWrite=False)
+            return self.get_no_permission()
+        
         permissions = self._acl.get_user_permissions(user_id)        
         if not permissions:
-            return Permission(canRead=False, canWrite=False)
+            return self.get_no_permission()
         
         readPermissions = [p for p in permissions if p.find('read') >= 0]
 
@@ -103,27 +116,33 @@ class SermonManager:
         canAssign = False
         canUnassign = False
         canAssignAnyone = False
-        if sermon.status != 'in development':
+        canPublish = False
+        canViewPublished = sermon.status == 'published' 
+        if self._acl.get_status_order(sermon.status)  >  self._acl.get_status_order('in development'):
             canAssignAnyone = 'assign_any_item' in permissions
             if canAssignAnyone: #admin
-                canAssign = False
-                canUnassign = False
+                canAssign = True
+                canUnassign = True
+                canPublish = True
             elif 'assign_item' not in permissions: #reader
                 canAssign = False
                 canUnassign = False
+                canPublish = False
             else: #editor
                 if sermon.assigned_to:  
                     if user_id == sermon.assigned_to:
                         canUnassign = True
                         canAssign = False
+                        canPublish =  self._acl.get_status_order(sermon.status) >= self._acl.get_status_order('ready')
                     else:
                         canUnassign = False
                         canAssign = False
                 else:
                     canUnassign = False
-                    canAssign = True
+                    canAssign = True    
         
-        return Permission(canRead=canRead, canWrite=canWrite, canAssign=canAssign, canUnassign=canUnassign, canAssignAnyone=canAssignAnyone) 
+        return Permission(canRead=canRead, canWrite=canWrite, canAssign=canAssign, canUnassign=canUnassign, 
+                          canAssignAnyone=canAssignAnyone, canPublish=canPublish, canViewPublished=canViewPublished) 
     
 
     def assign(self, user_id:str, item:str, action:str) -> Permission: 
@@ -132,11 +151,14 @@ class SermonManager:
         if action == 'assign' and permissions.canAssign:
             sermon.assigned_to = user_id       
             sermon.assigned_to_name = self._acl.get_user(user_id).get('name')  
-            sermon.status = 'assigned'               
+            sermon.status = 'assigned'  
+            sermon.assigned_to_date = self._sm.convert_datetime_to_cst_string(datetime.datetime.now())
+
         elif action == 'unassign' and permissions.canUnassign:
             sermon.assigned_to = None
             sermon.assigned_to_name = None
             sermon.status = 'ready'
+            sermon.assigned_to_date = None
         else:
             return None
         
@@ -159,6 +181,37 @@ class SermonManager:
         
         self._scm.set_bookmark(user_id, item, index)
         return {"message": "bookmark has been set"}
+    
+    def get_users(self):
+        return self._acl.users
+    
+
+    def publish(self, user_id:str, item:str):
+        permissions = self.get_sermon_permissions(user_id, item)
+        if not permissions.canPublish:
+            return  {"message": "You don't have permission to publish this item"}
+        
+        sermon = self._sm.get_sermon_metadata(user_id, item)
+        sermon.status = 'published'
+        sermon.published_date = self._sm.convert_datetime_to_cst_string(datetime.datetime.now())
+        self._sm.save_sermon_metadata()
+        ScriptDelta(self.base_folder, item).publish(sermon.assigned_to)
+        return {"message": "sermon has been published"}
+    
+    def get_final_sermon(self, user_id:str, item:str, published:str):
+        permissions = self.get_sermon_permissions(user_id, item)
+        if not permissions.canRead:
+            return  {"message": "You don't have permission to update this item"}
+        sd = ScriptDelta(self.base_folder, item)
+        sermon_data =  sd.get_final_script( published == 'published')
+        if(published != 'published'):
+            sermon = self._sm.get_sermon_metadata(user_id, item)
+            sermon_data['metadata']['item'] = sermon.item
+            sermon_data['metadata']['title'] = sermon.title
+            sermon_data['metadata']['summary'] = sermon.summary
+        return sermon_data
+
+    
 
 
 

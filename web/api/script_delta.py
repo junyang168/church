@@ -4,12 +4,23 @@ import jsonlines
 import boto3
 import os
 import math
+import re
+import datetime
 
 class ScriptDelta:
 
     def __init__(self, base_folder:str, item_name:str) -> None:
         self.base_folder = base_folder
         self.item_name = item_name
+        self.bucket_name = 'dallas-holy-logos'
+        self.aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+        self.aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+
+    
+    def get_s3(self):
+        return boto3.client('s3', aws_access_key_id=self.aws_access_key_id, aws_secret_access_key=self.aws_secret_access_key)
+
+
 
     def loadPatchedScript(self):
         with open( self.base_folder +  '/script_patched/' + self.item_name + '.json', 'r') as file1:
@@ -61,10 +72,12 @@ class ScriptDelta:
             timelineItem = timelineDictionary[  paragraphs[i-1]['index'] ] if i > 0 else None
             if timelineItem:
                 start_item =  timelineDictionary[timelineItem['next_item']]
+                para['start_index'] = start_item['index']
                 para['start_time'] = self.calcuateTime( start_item['index'] , start_item['start_time'])
                 para['start_timeline'] = self.formatTime(para['start_time'])
             else:
                 para['start_timeline'] = '00:00:00'
+                para['start_index'] = '0'
                 para['start_time'] = 0
 
             this_timeline = timelineDictionary[ para['index'] ]
@@ -88,6 +101,7 @@ class ScriptDelta:
                 self.patched = json.load(file1)
             self.add_timeline(self.patched)
             return self.patched
+        
         
 
     def compare_text(self, patched_i: int , review_i:int):
@@ -180,14 +194,56 @@ class ScriptDelta:
             json.dump(data_dicts, file, ensure_ascii=False, indent=4)    
 
         #update s3
-        self.save_to_s3(file_path, 'dallas-holy-logos', f"{folder}/{item}.json", user_id)
+        self.save_to_s3(file_path, self.bucket_name, f"{folder}/{item}.json", user_id)
         return {"message": f"{folder} updated successfully"}
 
 
+    def remove_format(self, text:str):
+        text =  re.sub(r'~~.*?~~', '', text)        
+        return re.sub(r'\*(.*?)\*', r'\1', text).strip()
+    
+    
+    def get_clean_script(self):
+        paras = [{'start_index' : p['start_index'], 
+                  'index' : p['index'],   
+                  'text': self.remove_format( p.get('text') ) } for p in  self.review if p.get('text')]
+        for i in reversed(range(1, len(paras))):
+            if not paras[i]['text'] :
+                paras.pop()
+        return paras
+    
+    def get_clean_script_text(self):
+        self.loadReviewScript()
+        self.add_timeline(self.review)
+        return self.get_clean_script()
+
+    def get_final_script(self, is_published:bool):
+        if is_published:
+            s3 = self.get_s3()
+            response = s3.get_object(Bucket=self.bucket_name, Key='script_published/' + self.item_name + '.json')
+            sermon_data =  response['Body'].read().decode('utf-8')
+            sermon_detail =  json.loads(sermon_data)
+            metadata = response['Metadata']
+        else:
+            sermon_detail = self.get_clean_script_text()
+            metadata = {}
+        return { 'metadata': metadata, 'script': sermon_detail}
+
+
+    def publish(self, author:str):
+
+        published_script = self.get_clean_script_text()
+        
+        s3 = self.get_s3()
+
+        sermon_data = json.dumps(published_script, ensure_ascii=False)
+        s3.put_object(Body=sermon_data, Bucket=self.bucket_name, Key='script_published/' + self.item_name + '.json', Metadata={'author': author, 'published_date': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')})
+
+
+
+
 if __name__ == '__main__':
-    delta = ScriptDelta('/Users/junyang/church/data', '2019-2-15 心mp4')
-    changes = delta.getChanges()
-    for p in changes:
-        print(p.get('start_timeline'), p.get('text'))
-        print('\n')
+    delta = ScriptDelta('/Users/junyang/church/data', '2019-2-18 良心')
+#    text = delta.get_script_text(with_index=True)
+    delta.publish('junyang168@gmail.com')
 

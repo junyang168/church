@@ -9,7 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 import sermon_manager as sm
 from script_delta import ScriptDelta
-
+from fastapi.responses import HTMLResponse
+import mistune
 
 class Paragraph(BaseModel):
     index:str
@@ -88,6 +89,38 @@ def get_bookmark(user_id:str, item:str):
 def set_bookmark(user_id:str, item:str, index:str):
     return sm.sermonManager.set_bookmark(user_id, item, index)
 
+@app.get("/api/users")
+def get_users():
+    return sm.sermonManager.get_users()
+
+@app.put("/api/publish/{user_id}/{item}")
+def publish(user_id:str, item:str):
+    return sm.sermonManager.publish(user_id, item)
+
+@app.get("/api/final_sermon/{user_id}/{item}/{published}")
+def get_sermon(user_id:str, item: str, published:str = None): 
+    return sm.sermonManager.get_final_sermon(user_id,item,published)
+
+
+@app.get("/public/{item}", response_class=HTMLResponse)
+def get_sermon_page(item):
+    sermon_data = sm.sermonManager.get_final_sermon('junyang168@gmail.com',item,'ed')
+    metadata = sermon_data['metadata']
+    script = sermon_data['script']
+
+    script_md = '\n\n'.join([ p['text'] for p in script])
+    html = mistune.markdown(script_md)
+
+    return f"""
+    <html>
+        <head>
+            <title>{metadata.get('title')}</title>
+        </head>
+        <body>
+            {html}
+        </body>
+    </html>
+    """
 
 if __name__ == "__main__":
 #    save_to_s3(get_file_path('script_review', '2019-2-15 心mp4'), 'dallas-holy-logos', 'script_fixed/2019-2-15 心mp4.txt', 'junyang168@gmail.com')

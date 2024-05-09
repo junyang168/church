@@ -2,6 +2,8 @@ import json
 import os
 
 class AccessControl:
+
+    status_order = ['in development', 'ready', 'assigned', 'in review', 'published']
     
     def __init__(self, base_folder:str):
         self.base_folder = base_folder
@@ -35,10 +37,13 @@ class AccessControl:
         for role in user_roles:
             permissions.update([rp['permission'] for rp in self.config['role_permissions'] if rp['role'] == role])
 
-        return list(permissions)               
+        return list(permissions)  
+
+    def get_status_order(self, status:str):
+        return self.status_order.index(status)    
     
     def get_refresher(self):
-        return ('config.js', self.load_config)
+        return ('config.json', self.load_config)
 
 
 
