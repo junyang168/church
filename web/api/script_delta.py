@@ -7,12 +7,13 @@ import math
 import re
 import datetime
 
+
 class ScriptDelta:
 
     def __init__(self, base_folder:str, item_name:str) -> None:
         self.base_folder = base_folder
         self.item_name = item_name
-        self.bucket_name = 'dallas-holy-logos'
+        self.bucket_name = os.getenv('AWS_S3_BUCKET_NAME') 
         self.aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
         self.aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
 
@@ -228,22 +229,57 @@ class ScriptDelta:
             sermon_detail = self.get_clean_script_text()
             metadata = {}
         return { 'metadata': metadata, 'script': sermon_detail}
+    
+
 
 
     def publish(self, author:str):
 
         published_script = self.get_clean_script_text()
+        self.add_py_index(published_script)
         
         s3 = self.get_s3()
 
         sermon_data = json.dumps(published_script, ensure_ascii=False)
         s3.put_object(Body=sermon_data, Bucket=self.bucket_name, Key='script_published/' + self.item_name + '.json', Metadata={'author': author, 'published_date': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')})
 
+    def search(self, text_list:list[str]):
+        published_script = self.get_final_script(True)
+        match_result = {}
+        for text in text_list:
+            text2 = text + '~'
+            for p in published_script['script']:
+                if not p['text']:
+                    continue 
+                diff = difflib.Differ().compare(p['text'], text2)
+                line = []
+                for ele in diff:
+                    if ele.startswith('-'):
+                        pass
+                    elif ele.startswith('+'):
+                        ch = ele.strip()
+                        if ch.find('~') >= 0:
+                            break
+                        line.append( ch.replace(' ','') )  
+                    else:
+                        line.append( ele.strip() )
+                changed_text = ''.join(line)  
+                if difflib.SequenceMatcher(None, text, changed_text).ratio() >= 0.9:
+                    match_result[text] =  p['start_index'] 
+                    break
+
+        return match_result 
+
+
+
+
 
 
 
 if __name__ == '__main__':
     delta = ScriptDelta('/Users/junyang/church/data', '2019-2-18 良心')
+    res = delta.search(['論到祭偶像之物,我們曉得偶像在世上算不得甚麼,也知道神只有一位,再沒有別的神。'])
+    print(res)
 #    text = delta.get_script_text(with_index=True)
-    delta.publish('junyang168@gmail.com')
+#    delta.publish('junyang168@gmail.com')
 

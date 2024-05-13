@@ -6,6 +6,8 @@ import json
 import boto3
 import pytz
 import datetime
+import xml.etree.ElementTree as ET
+
 
 class Sermon(BaseModel):
     item :str
@@ -32,7 +34,7 @@ class SermonMetaManager:
         aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
         aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         self.s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-        self.bucket_name = 'dallas-holy-logos'
+        self.bucket_name = os.getenv('AWS_S3_BUCKET_NAME') 
         self.load_sermon_metadata()
         self.load_sermons_from_s3()
 
@@ -125,3 +127,22 @@ class SermonMetaManager:
         with open(self.metadata_file_path, "w") as f:
             json.dump([s.dict() for s in self.sermons], f, ensure_ascii=False, indent=4)
 
+    def generate_sitemap(self, sermons, domain):
+        urlset = ET.Element('urlset', xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
+
+        for s in sermons:
+            url = f'/public/{s.item}' 
+            url_element = ET.SubElement(urlset, 'url')
+            ET.SubElement(url_element, 'loc').text = domain + url
+            ET.SubElement(url_element, 'lastmod').text = s.published_date
+            ET.SubElement(url_element, 'changefreq').text = 'weekly'
+            ET.SubElement(url_element, 'priority').text = '0.5'
+
+        tree = ET.ElementTree(urlset)
+        ET.indent(tree, space="   ")
+        return ET.tostring(urlset, encoding='utf-8', method='xml').decode()
+
+    def get_sitemap(self):
+        domain = 'https://holylogos.servehttp.com'
+        published_sermons = [ s for s in self.sermons if s.status == 'published']
+        return self.generate_sitemap(published_sermons, domain)

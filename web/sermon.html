@@ -19,27 +19,20 @@
         <script src="editor.js?v=0509"></script>
     </head>
     <body>
-        <header>
-            <div class="flex items-center justify-right" id="user_info" style="display: none;" >
-                <img class="h-8 w-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/ogw/AF2bZyiTK_-M2lzpxafPsQbqKSktTIEZ0VY_EfJJ4KyJhBC46r0=s32-c-mo" alt="User Profile Picture">
+        <header class="px-3 py-1 md:px-3 md:py-1 flex md:grid md:grid-cols-6 h-[48px] md:h-[48px] border-b">
+            <div class="flex-1 flex items-end justify-end md:col-start-6">
+                <div class="flex items-center justify-right" id="user_info" style="display: none;" >
+                    <img class="h-8 w-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/ogw/AF2bZyiTK_-M2lzpxafPsQbqKSktTIEZ0VY_EfJJ4KyJhBC46r0=s32-c-mo" alt="User Profile Picture">
+                </div>
+                <div id="g_id_onload" data-client_id="674603198442-bl7rkgeoiig3ei5uan4damdnliipt4sv.apps.googleusercontent.com"
+                    data-context="signin" data-ux_mode="popup" data-callback="onSignIn" data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline"
+                    data-text="signin_with" data-size="large" data-logo_alignment="left">
+                </div>
             </div>
-    
-            <div id="g_id_onload"
-            data-client_id="674603198442-bl7rkgeoiig3ei5uan4damdnliipt4sv.apps.googleusercontent.com"
-            data-context="signin"
-            data-ux_mode="popup"
-            data-callback="onSignIn"
-            data-auto_prompt="false">
-        </div>
-        <div class="g_id_signin"
-            data-type="standard"
-            data-shape="rectangular"
-            data-theme="outline"
-            data-text="signin_with"
-            data-size="large"
-            data-logo_alignment="left">
-        </div>  
         </header>
+    
         <div class="flex md:flex md:flex-grow flex-row justify-end space-x-1 p-1">
             <div class="inline-flex rounded-md shadow-sm" role="group">
                 <button type="button" id="home_btn" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white">

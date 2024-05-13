@@ -204,14 +204,19 @@ class SermonManager:
             return  {"message": "You don't have permission to update this item"}
         sd = ScriptDelta(self.base_folder, item)
         sermon_data =  sd.get_final_script( published == 'published')
-        if(published != 'published'):
-            sermon = self._sm.get_sermon_metadata(user_id, item)
-            sermon_data['metadata']['item'] = sermon.item
-            sermon_data['metadata']['title'] = sermon.title
-            sermon_data['metadata']['summary'] = sermon.summary
+#        if(published != 'published'):
+        sermon = self._sm.get_sermon_metadata(user_id, item)
+        sermon_data['metadata']['item'] = sermon.item
+        sermon_data['metadata']['title'] = sermon.title if sermon.title else sermon.item
+        sermon_data['metadata']['summary'] = sermon.summary
         return sermon_data
-
     
+    def get_sitemap(self):
+        return self._sm.get_sitemap()
+
+    def search_script(self, item , text_list) -> dict:
+        sd = ScriptDelta(self.base_folder, item)
+        return sd.search(text_list)
 
 
 

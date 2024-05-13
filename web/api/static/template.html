@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+    <html>
+        <meta id="view" name="viewport" content="initial-scale=1, minimum-scale=1, maximum-scale=5, viewport-fit=cover">
+        <meta http-equiv='Content-Type' content='text/html' ; charset='utf-8'>
+        <head>
+            <title>{title}</title>
+            <link rel="icon" type="image/x-icon" href="https://cdn.website-editor.net/1410911f48024acea37d53b26049d3e6/site_favicon_16_1536538107245.ico">            
+            <script src="https://cdn.tailwindcss.com"></script>
+            <script src="/static/published.js"></script>
+        </head>
+        <body>
+            <header class="px-3 py-1 md:px-3 md:py-1 flex md:grid md:grid-cols-6 h-[48px] md:h-[48px] border-b" >
+                <div class="flex-1 flex items-end justify-end md:col-start-6">
+                    <div class="flex items-center justify-right" id="user_info" style="display: none;" >
+                        <img class="h-8 w-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/ogw/AF2bZyiTK_-M2lzpxafPsQbqKSktTIEZ0VY_EfJJ4KyJhBC46r0=s32-c-mo" alt="User Profile Picture">
+                    </div>
+                    <div id="g_id_onload" data-client_id="674603198442-bl7rkgeoiig3ei5uan4damdnliipt4sv.apps.googleusercontent.com"
+                        data-context="signin" data-ux_mode="popup" data-callback="onSignIn" data-auto_prompt="false">
+                    </div>
+                    <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline"
+                        data-text="signin_with" data-size="large" data-logo_alignment="left">
+                    </div>
+                </div>
+            </header>            
+            <div class='px-10 items-center'>
+                <h1 class='text-gray-900 md:text-5xl lg:text-6xl dark:text-greay-900 text-center py-10'>{title}</h1>
+                <main class="flex justify-center">
+                    <div class="max-w-5xl">
+                {html}
+                    </div>
+                </main>
+            </div>
+        </body>
+    </html>

@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Union
@@ -10,6 +10,8 @@ load_dotenv()
 import sermon_manager as sm
 from script_delta import ScriptDelta
 from fastapi.responses import HTMLResponse
+import sermon_meta 
+
 import mistune
 
 class Paragraph(BaseModel):
@@ -30,6 +32,10 @@ class AssignRequest(BaseModel):
     user_id:str
     item:str
     action:str
+
+class SearchRequest(BaseModel):
+    item:str
+    text_list:List[str]
 
 
 app = FastAPI()
@@ -102,25 +108,39 @@ def get_sermon(user_id:str, item: str, published:str = None):
     return sm.sermonManager.get_final_sermon(user_id,item,published)
 
 
+from fastapi.staticfiles import StaticFiles
+
+static_dir = os.path.join( os.path.dirname(os.path.abspath(__file__)) ,'static')
+
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+@app.get("/public/sitemap")
+def get_sitemap():
+    sitemapXml = sm.sermonManager.get_sitemap()
+    return Response(content=sitemapXml, media_type="application/xml")
+
+
 @app.get("/public/{item}", response_class=HTMLResponse)
 def get_sermon_page(item):
-    sermon_data = sm.sermonManager.get_final_sermon('junyang168@gmail.com',item,'ed')
+    sermon_data = sm.sermonManager.get_final_sermon('junyang168@gmail.com',item,'published')
     metadata = sermon_data['metadata']
     script = sermon_data['script']
 
-    script_md = '\n\n'.join([ p['text'] for p in script])
-    html = mistune.markdown(script_md)
+    with open( static_dir +  '/template.html', 'r') as file:
+        template = file.read()
 
-    return f"""
-    <html>
-        <head>
-            <title>{metadata.get('title')}</title>
-        </head>
-        <body>
-            {html}
-        </body>
-    </html>
-    """
+    html = '\n\n'.join([ f"<p class='py-2' id='{p['start_index']}'>{mistune.markdown(p['text'])}</p>" for p in script])
+#    html = mistune.markdown(script_md)
+
+    return template.format(title=metadata.get('title'), html=html)
+    
+
+@app.post("/api/search")
+def search_script( req : SearchRequest):
+    return sm.sermonManager.search_script(req.item, req.text_list)
+    
+
+
 
 if __name__ == "__main__":
 #    save_to_s3(get_file_path('script_review', '2019-2-15 心mp4'), 'dallas-holy-logos', 'script_fixed/2019-2-15 心mp4.txt', 'junyang168@gmail.com')
