@@ -129,10 +129,13 @@ def get_sermon_page(item):
     with open( static_dir +  '/template.html', 'r') as file:
         template = file.read()
 
-    html = '\n\n'.join([ f"<p class='py-2' id='{p['start_index']}'>{mistune.markdown(p['text'])}</p>" for p in script])
+    with open( static_dir +  '/published.js', 'r') as file:
+        js = file.read()
+
+    html = '\n\n'.join([ f"<p class='py-2' id='{p['start_index']}'>{p['text']}</p>" for p in script])
 #    html = mistune.markdown(script_md)
 
-    return template.format(title=metadata.get('title'), html=html)
+    return template.format(script=js, title=metadata.get('title'), html=html)
     
 
 @app.post("/api/search")

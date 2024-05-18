@@ -236,7 +236,6 @@ class ScriptDelta:
     def publish(self, author:str):
 
         published_script = self.get_clean_script_text()
-        self.add_py_index(published_script)
         
         s3 = self.get_s3()
 
