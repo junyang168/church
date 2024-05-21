@@ -6,7 +6,10 @@ import os
 import math
 import re
 import datetime
-
+if __name__ == '__main__':
+    from sentence_splitter import SentenceSplitter
+else:
+    from .sentence_splitter import SentenceSplitter
 
 class ScriptDelta:
 
@@ -16,6 +19,7 @@ class ScriptDelta:
         self.bucket_name = os.getenv('AWS_S3_BUCKET_NAME') 
         self.aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
         self.aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        self.timelineDictionary = self.loadTimeline()
 
     
     def get_s3(self):
@@ -67,12 +71,11 @@ class ScriptDelta:
         return f'{h:02}:{m:02}:{s:02}'
 
     def add_timeline(self, paragraphs):
-        timelineDictionary = self.loadTimeline()
         for i in range(0, len(paragraphs)):
             para = paragraphs[i]
-            timelineItem = timelineDictionary[  paragraphs[i-1]['index'] ] if i > 0 else None
+            timelineItem = self.timelineDictionary[  paragraphs[i-1]['index'] ] if i > 0 else None
             if timelineItem:
-                start_item =  timelineDictionary[timelineItem['next_item']]
+                start_item =  self.timelineDictionary[timelineItem['next_item']]
                 para['start_index'] = start_item['index']
                 para['start_time'] = self.calcuateTime( start_item['index'] , start_item['start_time'])
                 para['start_timeline'] = self.formatTime(para['start_time'])
@@ -81,7 +84,7 @@ class ScriptDelta:
                 para['start_index'] = '0'
                 para['start_time'] = 0
 
-            this_timeline = timelineDictionary[ para['index'] ]
+            this_timeline = self.timelineDictionary[ para['index'] ]
             if this_timeline: 
                 para['end_time'] = self.calcuateTime( this_timeline['index'], this_timeline['end_time']);
             else:
@@ -200,25 +203,28 @@ class ScriptDelta:
 
 
     def remove_format(self, text:str):
-        text =  re.sub(r'~~.*?~~', '', text)        
+        text =  re.sub(r'~~(.|\n)*?~~', '', text) 
+        idx = text.find('~~')
+        if idx >= 0 :
+            text = text[:idx]       
         return re.sub(r'\*(.*?)\*', r'\1', text).strip()
     
     
-    def get_clean_script(self):
-        paras = [{'start_index' : p['start_index'], 
-                  'index' : p['index'],   
-                  'text': self.remove_format( p.get('text') ) } for p in  self.review if p.get('text')]
+    def get_clean_script(self, paras):
+        for p in paras:
+            if p.get('text'):
+                p['text'] = self.remove_format(p.get('text'))
         for i in reversed(range(1, len(paras))):
             if not paras[i]['text'] :
-                paras.pop()
+                paras.pop(i)
         return paras
     
-    def get_clean_script_text(self):
+    def get_final_script_data(self):
         self.loadReviewScript()
         self.add_timeline(self.review)
-        return self.get_clean_script()
+        return self.review
 
-    def get_final_script(self, is_published:bool):
+    def get_final_script(self, is_published:bool=True, remove_tags:bool=True):
         if is_published:
             s3 = self.get_s3()
             response = s3.get_object(Bucket=self.bucket_name, Key='script_published/' + self.item_name + '.json')
@@ -226,8 +232,12 @@ class ScriptDelta:
             sermon_detail =  json.loads(sermon_data)
             metadata = response['Metadata']
         else:
-            sermon_detail = self.get_clean_script_text()
+            self.loadReviewScript()
+            sermon_detail = self.review
             metadata = {}
+        
+        if remove_tags:
+            sermon_detail = self.get_clean_script(sermon_detail)
         return { 'metadata': metadata, 'script': sermon_detail}
     
 
@@ -235,7 +245,7 @@ class ScriptDelta:
 
     def publish(self, author:str):
 
-        published_script = self.get_clean_script_text()
+        published_script = self.get_final_script_data()
         
         s3 = self.get_s3()
 
@@ -269,6 +279,20 @@ class ScriptDelta:
 
         return match_result 
 
+    def get_chunks(self):
+        splitter = SentenceSplitter(self.timelineDictionary)
+        script = self.get_final_script(is_published=True, remove_tags=False)
+        chunks = []
+        for para in script['script']:
+            if para['text'].find('~~') >= 0:
+                continue
+            para['text'] = re.sub(r'\*(.*?)\*', r'\1', para['text']).strip()
+            splitted_chunks = splitter.split_chunks(para)
+            for c in splitted_chunks:
+                c['para_start_index'] = para['start_index'] 
+                c['para_end_index'] = para['index'] 
+            chunks.extend( splitted_chunks )
+        return chunks
 
 
 
@@ -277,8 +301,17 @@ class ScriptDelta:
 
 if __name__ == '__main__':
     delta = ScriptDelta('/Users/junyang/church/data', '2019-2-18 良心')
-    res = delta.search(['論到祭偶像之物,我們曉得偶像在世上算不得甚麼,也知道神只有一位,再沒有別的神。'])
-    print(res)
+    chunks = delta.get_chunks()
+    print(chunks)
+#    delta.get_final_script_data()
+#    splitter = SentenceSplitter(delta.timelineDictionary)   
+#    splitter.split_chunks(delta.review[1])
+
+#    delta = ScriptDelta('/Users/junyang/church/data', '2019-05-26 罗马书5章1至2节')
+#    script =  delta.get_final_script(False)
+#    delta.publish('junyang168@gmail.com')
+#    res = delta.search(['論到祭偶像之物,我們曉得偶像在世上算不得甚麼,也知道神只有一位,再沒有別的神。'])
+#    print(res)
 #    text = delta.get_script_text(with_index=True)
 #    delta.publish('junyang168@gmail.com')
 

@@ -103,9 +103,9 @@ def get_users():
 def publish(user_id:str, item:str):
     return sm.sermonManager.publish(user_id, item)
 
-@app.get("/api/final_sermon/{user_id}/{item}/{published}")
-def get_sermon(user_id:str, item: str, published:str = None): 
-    return sm.sermonManager.get_final_sermon(user_id,item,published)
+@app.get("/api/final_sermon/{user_id}/{item}")
+def get_sermon(user_id:str, item: str, published:str = None, remove_tags:bool = True): 
+    return sm.sermonManager.get_final_sermon(user_id,item,published,remove_tags)
 
 
 from fastapi.staticfiles import StaticFiles
