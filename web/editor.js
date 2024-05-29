@@ -474,6 +474,8 @@ function timeChanged(e) {
                 syncPlayerSlide(current_para.end_time );
                 player.pause();
             }
+            else
+                setSlideText(currentTime);
         }
     }
     else {

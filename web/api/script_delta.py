@@ -7,9 +7,9 @@ import math
 import re
 import datetime
 if __name__ == '__main__':
-    from sentence_splitter import SentenceSplitter
-else:
     from .sentence_splitter import SentenceSplitter
+else:
+    from sentence_splitter import SentenceSplitter
 
 class ScriptDelta:
 

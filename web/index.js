@@ -36,7 +36,7 @@ async function onLoaded() {
              }},          
             {title:"標題", width:350, formatter:"link", formatterParams:function(cell){
                 var sermon = cell.getRow().getData();
-                url = sermon.status != 'in development' ?  `sermon.html?v=0509&i=${encodeURIComponent(sermon.item)}` : '#'
+                url = sermon.status != 'in development' ?  `sermon.html?v=0528&i=${encodeURIComponent(sermon.item)}` : '#'
                 return {
                     label: sermon.title, 
                     url: url

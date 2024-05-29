@@ -63,7 +63,7 @@ if __name__ == '__main__':
     image_to_text = ImageToText()
 
     # Specify the path to the image file
-    image_path = '/Users/junyang/church/data/image/2019-2-15 心mp4/1_8.jpg'
+    image_path = '/Users/junyang/Downloads/test.png'
 
     img = cv2.imread(image_path)
 
