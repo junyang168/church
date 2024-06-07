@@ -137,9 +137,9 @@ class SermonManager:
         if self._acl.get_status_order(sermon.status)  >  self._acl.get_status_order('in development'):
             canAssignAnyone = 'assign_any_item' in permissions
             if canAssignAnyone: #admin
-                canAssign = True
+                canAssign = False
                 canUnassign = True
-                canPublish = True
+                canPublish = False
             elif 'assign_item' not in permissions: #reader
                 canAssign = False
                 canUnassign = False
