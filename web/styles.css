@@ -19,6 +19,19 @@ del {
 }
 
 
+blockquote:before {
+    color: #ccc;
+    content: open-quote;
+    font-size: 4em;
+    line-height: 0.1em;
+    margin-right: 0.25em;
+    vertical-align: -0.4em;
+}
+
+blockquote p {
+    display: inline;
+}
+
 main {
     padding-top: 20px;
     padding-left: 150px;
@@ -46,6 +59,15 @@ main {
     vertical-align: super;
     cursor: pointer;
 }
+
+.chat-icon {
+    display: none;
+}
+
+.caret:hover .chat-icon {
+    display: inline;
+}
+
 
 
 .row {
@@ -99,3 +121,31 @@ main {
     color: green;
 }
 
+#spinner-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);  
+    color: white;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner {
+    border: 10px solid #f3f3f3;
+    border-top: 16px solid #3498db;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 2s linear infinite;
+    display: block;
+    
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

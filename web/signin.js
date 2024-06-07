@@ -44,6 +44,11 @@ function showUserProfile() {
     var userId = sessionStorage.getItem('userId');
     var user_info = document.getElementById("user_info")
     if(userId) {
+        user_name = sessionStorage.getItem('user_name')
+        if(user_name) {
+            user_info.getElementsByTagName("span")[0].innerText = user_name;   
+        }
+
         user_info.getElementsByTagName("img")[0].src = sessionStorage.getItem('picture');
         user_info.style.display = "flex";
         if(env == 'production')
@@ -55,25 +60,51 @@ function showUserProfile() {
 
 }
 
-function onSignIn(googleUser) {
+async function loadUserInfo(user_id) {
+    try {
+        url = `${api_prefix}user/${user_id}`
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data =  await response.json();
+        sessionStorage.setItem('user_name', data.name);
+        return data
+    } catch (error) {
+        console.error(error);
+    }  
+    return null    
+}
+
+
+async function onSignIn(googleUser) {
     console.log("Succesfully Singed in!!!");
     const responsePayload = decodeJwtResponse(googleUser.credential);
     if (responsePayload) {
         userId = responsePayload.email
         sessionStorage.setItem('userId', userId);
         sessionStorage.setItem('picture', responsePayload.picture);
+                
         console.log("User ID: ", userId);
 
         onLoaded()
     }
 }
-function getUserId() {
-    return  user_id = env != 'dev' ? sessionStorage.getItem('userId') : 'junyang168@gmail.com'
 
+async function getUserId() {
+    var user_id = env != 'dev' ? sessionStorage.getItem('userId') : 'junyang168@gmail.com'
+    var userInfo =  await loadUserInfo(user_id)
+
+    if(!userInfo) {
+        alert('You are not authorized to access this site')
+        return null
+    }
+
+    return user_id
 }
 
 
-function checkSignin() {
+async function checkSignin() {
     var main = document.getElementsByTagName('main')[0]
     var msg = document.getElementById("signin_msg");
 
@@ -96,7 +127,7 @@ function checkSignin() {
     if(msg) 
         msg.style.display = "none";  
 
-    user_id = getUserId()
+    user_id = await getUserId()
     showUserProfile()    
     return user_id
 }

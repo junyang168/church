@@ -12,6 +12,7 @@ import boto3
 from pydantic import BaseModel
 from sermon_meta import Sermon, SermonMetaManager
 from sermon_comment import SermonCommentManager
+from image_to_text import ImageToText
 
 
 class Permission(BaseModel):
@@ -61,8 +62,23 @@ class SermonManager:
             return "You don't have permission to read this item"
 
         sd = ScriptDelta(self.base_folder, item)
-        return sd.get_script( changes == 'changes')
+        script =  sd.get_script( changes == 'changes')
+        for p in script:
+            if p.get('type') == 'comment':
+                ui = self.get_user_info( p.get('user_id') )
+                if ui:
+                    p['user_name'] = ui.get('name')
+        return script
     
+    def get_slide_text(self, user_id:str, item:str, timestamp:int):
+        permissions = self.get_sermon_permissions(user_id, item)
+        if not permissions.canWrite:
+            return "You don't have permission to read this item"
+        
+        i2t = ImageToText(self.base_folder, item)
+        txt = i2t.extract_slide(timestamp)
+        return {'text': txt}
+        
 
 
     def update_sermon(self, user_id:str, type:str,  item:str, data:dict):
@@ -184,7 +200,10 @@ class SermonManager:
     
     def get_users(self):
         return self._acl.users
-    
+
+    def get_user_info(self, user_id:str):   
+        return self._acl.get_user(user_id)
+
 
     def publish(self, user_id:str, item:str):
         permissions = self.get_sermon_permissions(user_id, item)

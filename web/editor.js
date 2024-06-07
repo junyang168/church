@@ -21,7 +21,7 @@ async function loadFile(user_id, type, item_name, ext) {
 
 async function getContext() {
 
-    user_id = getUserId()
+    user_id = await getUserId()
     if(!user_id) {
         alert('Please sign into Google')
         return null
@@ -38,6 +38,7 @@ async function getContext() {
 
 
     context =  { user_id: user_id,
+            user_name: sessionStorage.getItem('user_name'),
             item_name :item_name,
             view_changes: urlParams.get('c') == 'true'
         }
@@ -184,6 +185,12 @@ function turnOnEditor(current_para) {
             },
             title: "Play from start",
             className: "fa fa-fast-backward", 
+          },
+          {
+            name: "Import Slide Text",
+            action: load_slide_text,
+            title: "Capture Slide Text",
+            className: "fa fa-camera", 
           }
   
     ],
@@ -352,19 +359,78 @@ async function onRowClicked(e) {
 }
 
 
+async function load_slide_text() {
+    spinner = document.getElementById('spinner-container')
+    spinner.style.display = 'flex'
+    para = simplemde.element.data;
+    if(para.type != 'comment') {
+        createCommentPara(para)
+    }
+    
+    player.pause()
+    var currentTimeMs = Math.round(player.currentTime * 1000);
+    url =  api_prefix + `slide/${context.user_id}/${context.item_name}/${currentTimeMs}`    
+    const response = await fetch(url );    
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    slide = await response.json();
+
+    simplemde.value('> ' + slide.text);
+    spinner.style.display = 'none'
+
+}
+
+function createCommentPara(para) {
+    comment_para = insertComment(para);
+    loadParagraphs(scriptData);
+    sc = document.getElementById('sc');
+    var carets =  sc.getElementsByClassName('caret')
+    for( var caret of carets){
+        if(caret.data.s_index == comment_para.s_index) {
+            ta = getTextAreInRow(caret);
+            turnOnEditor(ta);        
+            break;
+        }
+    }
+
+}
+
+function onCommentClicked(e) {
+    createCommentPara(e.parentNode.data);
+}
+
+function resetScriptIndex() {
+    for(i = 0; i < scriptData.scripts.length; i++) {
+        scriptData.scripts[i].s_index = i;
+    }    
+}
+
+function insertComment(para) {
+    if(para.type == 'comment')
+        return para;
+    comment_data = { text:'', type:'comment', user_id:context.user_id, user_name:context.user_name, index:para.index}
+    scriptData.scripts.splice(para.s_index, 0, comment_data);
+    return comment_data
+}
+
 function loadParagraphs(scriptData) {
+    resetScriptIndex();
 
     sc = document.getElementById('sc');
+    sc.innerHTML = '';
     scriptData.scripts.forEach(function(para) {
         var tr = document.createElement('tr');
         tr.innerHTML = `
-            <td class="caret" width='20'></td>
-            <td class="timeline" width='50'>${para.start_timeline}</td>
+            <td class="caret" width='20'><img ${para.type !='comment'? 'class="chat-icon"':''}  src="images/icons8-comment-50.png" onclick="onCommentClicked(this)"></img></td>
+            <td class="timeline" width='50'>${para.type =='comment'? para.user_name:para.start_timeline}</td>
             <td><div class="paragraph">${marked.parse(para.text.trim())}</div></td>`;
         tr.ondblclick = onRowClicked 
         sc.appendChild(tr);
         tr.getElementsByClassName('paragraph')[0].data = para;               
-        tr.getElementsByClassName('caret')[0].data = para;               
+        tr.getElementsByClassName('caret')[0].data = para;   
+ 
     })
 
 }
@@ -434,12 +500,14 @@ async function loadData(context) {
         }
     }
 
+
     return {
         slides: slideData,
         scripts: paragraphs,
         item:item_name            
     }    
 }
+
 
 
 
@@ -458,6 +526,8 @@ function setSlideText(currentTime) {
 }
 
 function syncPlayerSlide(currentTime) {
+    if(!currentTime)
+        return;
     setSlideText(currentTime);
     player.currentTime = currentTime;
 }
@@ -467,7 +537,7 @@ function timeChanged(e) {
     document.getElementById("demo").innerHTML = player.currentTime;
     if (simplemde) {
         current_para = simplemde.element.data;
-        if(current_para) {
+        if(current_para && current_para.type != 'comment') {
             if (currentTime < current_para.start_time)
                 syncPlayerSlide(current_para.start_time);
             else if(currentTime > current_para.end_time) {
@@ -483,7 +553,7 @@ function timeChanged(e) {
         var paras =  document.getElementsByClassName('paragraph')
         for( ta of paras){
             para = ta.data
-            if( para.end_time > currentTime && para.start_time <= currentTime) {
+            if( para.type != 'comment' && para.end_time > currentTime && para.start_time <= currentTime) {
                 if(ta.style.backgroundColor != 'yellow') {
                     highlightCurrentPara(ta);
                 }                
@@ -631,8 +701,9 @@ async function wireup_buttons() {
 }
 
 async function onLoaded() {
+    var user_id = await checkSignin()
 
-    if(!checkSignin())
+    if(!user_id )
         return;
 
     var context = await getContext();

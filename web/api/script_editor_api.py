@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Union
+from typing import List, Union, Optional
 import boto3
 import json
 import os
@@ -15,8 +15,16 @@ import sermon_meta
 import mistune
 
 class Paragraph(BaseModel):
-    index:str
+    index: Optional[str] = None
     text: str
+    user_id: Optional[str] = None
+    user_name: Optional[str] = None
+    type: Optional[str] = None
+    end_time: Optional[int] = None
+    s_index: Optional[int] = None
+    start_index: Optional[str] = None
+    start_time: Optional[int] = None
+    start_timeline: Optional[str] = None
 
 class Slide(BaseModel):
     time:int
@@ -74,6 +82,10 @@ def update_script(request: UpdateRequest):
 def get_sermon(user_id:str, item: str, changes:str = None): 
     return sm.sermonManager.get_sermon_detail(user_id,item,changes)
 
+@app.get("/api/slide/{user_id}/{item}/{timestamp}")
+def get_slide(user_id:str, item: str, timestamp:int): 
+    return sm.sermonManager.get_slide_text(user_id,item, timestamp)
+
 @app.get("/api/permissions/{user_id}/{item}")
 def get_permissions(user_id:str,item:str) -> sm.Permission:
     return sm.sermonManager.get_sermon_permissions(user_id, item)
@@ -98,6 +110,11 @@ def set_bookmark(user_id:str, item:str, index:str):
 @app.get("/api/users")
 def get_users():
     return sm.sermonManager.get_users()
+
+@app.get("/api/user/{user_id}")
+def get_user_info(user_id:str):
+    return sm.sermonManager.get_user_info(user_id)
+
 
 @app.put("/api/publish/{user_id}/{item}")
 def publish(user_id:str, item:str):

@@ -16,7 +16,7 @@ async function getSermons(user_id) {
 
 async function onLoaded() {
 
-    user_id = checkSignin();
+    user_id = await checkSignin();
     if(!user_id) return;
 
     sermons = await getSermons(user_id)

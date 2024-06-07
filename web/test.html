@@ -1,99 +1,60 @@
 <html>
   <body>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://accounts.google.com/gsi/client" async></script>
-    <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
-    <script src="config.js"></script>
+    <script src="https://kit.fontawesome.com/e69d7c1a7e.js" crossorigin="anonymous"></script>
+    <script typ="text/javascript">
 
-    <script>
-function decodeToken(token) {
-    try {
-        const decoded = jwt_decode(token);
-        console.log(decoded);
-        return decoded;
-    } catch (error) {
-        console.error("Invalid token", error);
-        return null;
-    }
-}
+ </script>
 
-function validateTokenClaims(decodedToken) {
-    const currentTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
+    <style>
+        .relative-container {
+            position: relative;
+        }
+        
+        .spinner-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);  
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-    // Check if the token is expired
-    if (decodedToken.exp < currentTimestamp) {
-        console.error("Token has expired");
-        return false;
-    }
-    // Additional claim checks
-    // For example, validate issuer or audience
-    if (decodedToken.iss !== 'https://accounts.google.com') {
-        console.error("Invalid issuer");
-        return false;
-    }
+        .spinner {
+            border: 16px solid #f3f3f3;
+            border-top: 16px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+            display: block;
+            
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        </style>
 
-    return true; // Token is valid
-}
+        <table>
+            <tr>
+                <td></td>
+                <td>jianwen</td>
+                <td>
+                    <p>lkadjflaksdjfajdlkajfladjfa ajflakdjflakdjf adkjf adkjf aslkj</p>
+                </td>
+            </tr>
+        </table>
 
-function decodeJwtResponse(token) {
-    const decoded = decodeToken(token);
-    if (decoded && validateTokenClaims(decoded)) {
-        console.log("Token is valid and active.");
-        // Proceed with application logic, e.g., store the token for session management
-        return decoded
-    } else {
-        console.log("Token is invalid or inactive.");
-        // Handle invalid token, e.g., redirect to login
-        return null
-    }
-}
-
-function showUserProfile() {
-    var userId = sessionStorage.getItem('userId');
-    var user_info = document.getElementById("user_info")
-    if(userId) {
-        user_info.getElementsByTagName("img")[0].src = sessionStorage.getItem('picture');
-        user_info.style.display = "flex";
-        if(env == 'production')
-            document.getElementById("g_id_onload").nextElementSibling.style.display = "none";
-    }
-    else {
-        user_info.style.display = "none";
-    }
-
-}
-
-function onSignIn(googleUser) {
-    console.log("Succesfully Singed in!!!");
-    const responsePayload = decodeJwtResponse(googleUser.credential);
-    if (responsePayload) {
-        userId = responsePayload.email
-        sessionStorage.setItem('userId', userId);
-        sessionStorage.setItem('picture', responsePayload.picture);
-        showUserProfile();
-        console.log("User ID: ", userId);
-
-        onLoaded()
-    }
-}
+        <div class="spinner-container">
+            <div class="spinner"></div>
+        </div>    
 
 
-      window.onload = function () {
-        showUserProfile();
-
-      }
-    </script>
-    <header>
-        <h1>Google One Tap</h1>
-        <div class="flex items-center justify-right" id="user_info" style="display: none;" >
-            <img class="h-8 w-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/ogw/AF2bZyiTK_-M2lzpxafPsQbqKSktTIEZ0VY_EfJJ4KyJhBC46r0=s32-c-mo" alt="User Profile Picture">
-        </div>
-        <div id="g_id_onload" data-client_id="674603198442-bl7rkgeoiig3ei5uan4damdnliipt4sv.apps.googleusercontent.com"
-            data-context="signin" data-ux_mode="popup" data-callback="onSignIn" data-auto_prompt="false">
-        </div>
-        <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline"
-            data-text="signin_with" data-size="large" data-logo_alignment="left">
-        </div>
   </body>
 </html>

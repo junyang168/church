@@ -71,6 +71,7 @@ class ScriptDelta:
         return f'{h:02}:{m:02}:{s:02}'
 
     def add_timeline(self, paragraphs):
+        paragraphs = [ p for p in paragraphs if p.get('type') != 'comment']
         for i in range(0, len(paragraphs)):
             para = paragraphs[i]
             timelineItem = self.timelineDictionary[  paragraphs[i-1]['index'] ] if i > 0 else None
@@ -111,6 +112,9 @@ class ScriptDelta:
     def compare_text(self, patched_i: int , review_i:int):
         p1 = self.patched[patched_i]
         p2 = self.review[review_i]
+        if p2.get('type') == 'comment': 
+            return False
+        
         ratio = difflib.SequenceMatcher(None, p1['text'], p2['text']).ratio() 
         if ratio > 0.8:        
             return True
@@ -194,7 +198,16 @@ class ScriptDelta:
         folder = 'slide' if type == 'slides' else 'script_review'
         file_path = os.path.join(self.base_folder, folder, item + '.json')  
         with open(file_path, "w", encoding='UTF-8') as file:
-            data_dicts = [p.dict() for p in data]
+            data_dicts = []
+            for p in data:
+                ent = { 'text':p.text }
+                if p.type:
+                    ent['type'] = p.type
+                    ent['user_id'] = p.user_id 
+                if p.index:
+                    ent['index'] = p.index
+                data_dicts.append(ent)    
+
             json.dump(data_dicts, file, ensure_ascii=False, indent=4)    
 
         #update s3
