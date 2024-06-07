@@ -415,6 +415,13 @@ function insertComment(para) {
     return comment_data
 }
 
+function renderCommentImage(para) {
+    if( permissions && permissions.canWrite && !context.view_changes) 
+        return `<img ${para.type !='comment'? 'class="chat-icon"':''}  src="images/icons8-comment-50.png" onclick="onCommentClicked(this)"></img>`
+    else
+        return ''
+}
+
 function loadParagraphs(scriptData) {
     resetScriptIndex();
 
@@ -423,7 +430,7 @@ function loadParagraphs(scriptData) {
     scriptData.scripts.forEach(function(para) {
         var tr = document.createElement('tr');
         tr.innerHTML = `
-            <td class="caret" width='20'><img ${para.type !='comment'? 'class="chat-icon"':''}  src="images/icons8-comment-50.png" onclick="onCommentClicked(this)"></img></td>
+            <td class="caret" width='20'>${renderCommentImage(para)}</td>
             <td class="timeline" width='50'>${para.type =='comment'? para.user_name:para.start_timeline}</td>
             <td><div class="paragraph">${marked.parse(para.text.trim())}</div></td>`;
         tr.ondblclick = onRowClicked 
