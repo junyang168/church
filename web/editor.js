@@ -15,6 +15,7 @@ async function loadFile(user_id, type, item_name, ext) {
         return data
     } catch (error) {
         console.error(error);
+        return '[]'
     }      
 }
 
@@ -125,7 +126,7 @@ function turnOnEditor(current_para) {
     textarea.className = 'paragraph_textarea';
     textarea.style.width = '100%';
     textarea.style.height = '200px';
-    textarea.value = current_para.textContent;
+    textarea.value = current_para.data.text;
     textarea.data = current_para.data;
     
     current_para.parentNode.insertBefore(textarea, current_para.nextSibling);
@@ -152,10 +153,18 @@ function turnOnEditor(current_para) {
             action: function(editor) {
                 editor.codemirror.undo();
             },
-            className: "fa fa-undo", // Font Awesome icon class
+            className: "fa fa-undo", 
             title: "Undo",
         },        
-        "bold", "link", "image","quote", "horizontal-rule", "preview", "side-by-side", "fullscreen","|",
+        "bold", "link", "image","quote", "horizontal-rule", "preview", "side-by-side", "fullscreen",
+        {
+            name: "Remove Paragraph",
+            action: remove_paragraph,
+            title: "Remove Paragraph",
+            className: "fa-solid fa-trash", 
+          },
+        
+        "|",
         {
             name: "play",
             action: function(editor) {
@@ -186,13 +195,19 @@ function turnOnEditor(current_para) {
             title: "Play from start",
             className: "fa fa-fast-backward", 
           },
+          "|",
+          {
+            name: "Import Slide Image",
+            action: load_slide_image,
+            title: "Capture Slide Image",
+            className: "fa fa-camera", 
+          },
           {
             name: "Import Slide Text",
             action: load_slide_text,
             title: "Capture Slide Text",
-            className: "fa fa-camera", 
-          }
-  
+            className: "fa fa-font", 
+          }  
     ],
     status: false,
         element: textarea , 
@@ -358,10 +373,34 @@ async function onRowClicked(e) {
 
 }
 
+function remove_paragraph() {
+    if(!confirm('Are you sure you want to remove this paragraph?'))
+        return;
+
+    para = simplemde.element.data;
+    scriptData.scripts.splice(para.s_index, 1);
+    loadParagraphs(scriptData);
+    simplemde.toTextArea();
+    simplemde = null;
+    if(!pendingSaves['scripts']) {
+        pendingSaves['scripts'] = true;
+        setTimeout(saveScript, saveDelay);
+    }
+}
 
 async function load_slide_text() {
-    spinner = document.getElementById('spinner-container')
-    spinner.style.display = 'flex'
+    para = simplemde.element.data;
+    if(para.type != 'comment') {
+        createCommentPara(para)
+    }
+    
+    side_text = await extract_slide_text();
+
+    simplemde.value('> ' + slide.text);
+
+}
+
+async function load_slide_image() {
     para = simplemde.element.data;
     if(para.type != 'comment') {
         createCommentPara(para)
@@ -369,7 +408,7 @@ async function load_slide_text() {
     
     player.pause()
     var currentTimeMs = Math.round(player.currentTime * 1000);
-    url =  api_prefix + `slide/${context.user_id}/${context.item_name}/${currentTimeMs}`    
+    url =  api_prefix + `slide_image/${context.user_id}/${context.item_name}/${currentTimeMs}`    
     const response = await fetch(url );    
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -377,10 +416,12 @@ async function load_slide_text() {
 
     slide = await response.json();
 
-    simplemde.value('> ' + slide.text);
-    spinner.style.display = 'none'
-
+    var cm = simplemde.codemirror;
+    cm.replaceSelection(`![image](${encodeURIComponent(slide.image_url)})`);
+    cm.focus();
+     
 }
+
 
 function createCommentPara(para) {
     comment_para = insertComment(para);
@@ -671,6 +712,23 @@ async function publish_item() {
     }      
 }
 
+async function extract_slide_text() {
+    spinner = document.getElementById('spinner-container')
+    spinner.style.display = 'flex'
+    
+    player.pause()
+    var currentTimeMs = Math.round(player.currentTime * 1000);
+    url =  api_prefix + `slide_text/${context.user_id}/${context.item_name}/${currentTimeMs}`    
+    const response = await fetch(url );    
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    slide = await response.json();
+    spinner.style.display = 'none'
+    return slide.text
+
+}
+
 
 async function wireup_buttons() {
     var view_changes_btn = document.getElementById('view_changes_btn');
@@ -704,6 +762,14 @@ async function wireup_buttons() {
     );
     if(!permissions || !permissions.canViewPublished) 
         view_finished_btn.style.display = 'none'
+
+     var extract_text_btn = document.getElementById('extract_text_btn');
+        extract_text_btn.addEventListener('click',async function() {
+            slide_text = await extract_slide_text();
+            var slideTextArea = document.getElementById('slide_text');
+            slideTextArea.value = slide_text;
+        }
+    );  
 
 }
 

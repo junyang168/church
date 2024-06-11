@@ -13,6 +13,7 @@ from processor_pull_slide import ProcessorPullSlide
 from screen_detection import DectectBluescreen
 from patch import ProcessorPatch
 from processor_audio import ProcessorAudio
+from processor_correct_transcribe import ProcessorCorrectTranscribe
 import json
 import datetime
 
@@ -20,13 +21,10 @@ class ProcessingPipeline:
     def __init__(self, base_folder:str, input_folder:str):
         self.processors = [ProcessorAudio(), 
                            ProcessorConvertVideo(),
-                           ProcessorExtractAudio(), 
+                           ProcessorExtractAudio(),                            
                            ProcessorTranscribe(),
-                           ProcessorProcessScript(), 
-                           ProcessorFix(),
-                           DectectBluescreen(), 
-                           ProcessorPullSlide(), 
-                           ProcessorPatch()]
+                           ProcessorCorrectTranscribe()
+                           ]
         self.base_folder = base_folder
         self.input_folder = input_folder
         self.control_file = base_folder + '/Processing_stage.xlsx'

@@ -136,5 +136,5 @@ class ProcessorCorrectTranscription(Processor):
 if __name__ == '__main__':
     base_folder = '/Users/junyang/church/data'  
     processor = ProcessorCorrectTranscription()
-    processor.process(base_folder + '/' + 'script', '2019-3-31 宗主国与附庸国的约', base_folder + '/script_corrected')
+    processor.process(base_folder + '/' + 'script', '2019-07-28 罗马书六章1节', base_folder + '/script_corrected')
     pass

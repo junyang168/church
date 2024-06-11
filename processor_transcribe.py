@@ -83,55 +83,26 @@ class ProcessorTranscribe(Processor):
 
 
 if __name__ == "__main__":
+    base_folder = '/Users/junyang/church/data'  
+
     import os
     import jsonlines
     from utils import get_files, find_last_index_of_whitespace_or_punctuation, clean_string
     import utils
 
-    base_folder = '/Users/junyang/church/data'
+
+    item_name = '2019-07-28 罗马书六章1节'
+
     script_folder = os.path.join(base_folder, 'script')
 
-    files = get_files(script_folder, '.jsonl')
+    files = get_files(base_folder + '/audio', '.mp3')
+    files =  [file_name for file_name in files if file_name.split('_')[0] == item_name ]
+    files.sort()
 
     for file_name in files:
-        item_name = file_name.split('.')[0]
-        if item_name != '2019-3-24 罗马书3章21至31节':
-            continue
+        process = ProcessorTranscribe()
+        process.process(base_folder + '/audio', item_name, base_folder + '/script', file_name, is_append=True)
 
-        script_path = os.path.join(base_folder,'script_processed', item_name + '.txt')
-        with open(script_path) as file_script:
-            script = file_script.read()
-            paragraphs = [ {'text': p } for p in  script.split('\n\n') ]
-
-        file_path = os.path.join(script_folder, file_name)        
-        with jsonlines.open(file_path) as reader:
-            script_ts = [ line for line in reader]
-        i = 0
-        j = 0 
-        for i in range( len(paragraphs) ):
-            p = paragraphs[i]['text']
-            idx = find_last_index_of_whitespace_or_punctuation(p)
-            sub = clean_string(p[idx+1:])[-5:]   
-#            sub = utils.convert_to_traditional_chinese(sub)
-            while j < len(script_ts):
-                ts = script_ts[j]
-#                ts['text'] = utils.convert_to_traditional_chinese(ts['text'])
-                j += 1
-                if  ( script_ts[j-2]['text'] +  ts['text'] ).rfind(sub) >= 0 :
-                    paragraphs[i]['timeline_index'] = ts['index']
-                    break
-            if j == len(script_ts) :
-                pass
-
-
-
-        
-        script_processed_path = os.path.join(base_folder,'script_processed', item_name + '.txt1')
-        with open(script_processed_path,'w') as fp:
-            for para in paragraphs:
-                fp.write(para['text'])
-                fp.write(f" [{para['timeline_index']}]" if 'timeline_index' in para else '')
-                fp.write('\n\n')
                 
 
 

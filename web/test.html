@@ -2,7 +2,22 @@
   <body>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://kit.fontawesome.com/e69d7c1a7e.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js" integrity="sha512-JyCZjCOZoyeQZSd5+YEAcFgz2fowJ1F1hyJOXgtKu4llIa0KneLcidn5bwfutiehUTiOuK87A986BZJMko0eWQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" integrity="sha512-UtLOu9C7NuThQhuXXrGwx9Jb/z9zPQJctuAgNUBK3Z6kkSYT9wJ+2+dh6klS+TDBCV9kNPBbAxbVD+vCcfGPaA==" crossorigin="anonymous" referrerpolicy="no-referrer" />        
     <script typ="text/javascript">
+        window.onload = function() {
+            return;
+            var image = document.getElementById('image');
+            var cropper = new Cropper(image, {
+                zoomable:false,
+                crop: function(event) {
+                    console.log(event.detail.x);
+                    console.log(event.detail.y);
+                    console.log(event.detail.width);
+                    console.log(event.detail.height);
+                }
+            });
+        };
 
  </script>
 
@@ -39,22 +54,22 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+/* Make sure the size of the image fits perfectly into the container */
+img {
+    display: block;
+    width: 1000px;
+    height: 800px;  
+    /* This rule is very important, please don't ignore this */
+    object-fit: none;
+    object-position: -400px -50px;
+  }        
         </style>
 
-        <table>
-            <tr>
-                <td></td>
-                <td>jianwen</td>
-                <td>
-                    <p>lkadjflaksdjfajdlkajfladjfa ajflakdjflakdjf adkjf adkjf aslkj</p>
-                </td>
-            </tr>
-        </table>
 
-        <div class="spinner-container">
-            <div class="spinner"></div>
-        </div>    
-
+        <div style="border:1px" >
+            <img id="image" src="data%2Fslide%2Fimages%2F2019-2-18%20%E8%89%AF%E5%BF%83-0.jpg" >
+        </div>
 
   </body>
 </html>

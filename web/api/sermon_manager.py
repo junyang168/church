@@ -79,6 +79,14 @@ class SermonManager:
         txt = i2t.extract_slide(timestamp)
         return {'text': txt}
         
+    def get_slide_image(self, user_id:str, item:str, timestamp:int):
+        permissions = self.get_sermon_permissions(user_id, item)
+        if not permissions.canWrite:
+            return "You don't have permission to read this item"
+        
+        i2t = ImageToText(self.base_folder, item)
+        img_url = i2t.get_slide_image_url(timestamp)
+        return {'image_url': img_url}
 
 
     def update_sermon(self, user_id:str, type:str,  item:str, data:dict):

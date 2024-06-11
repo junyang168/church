@@ -32,9 +32,9 @@ class ProcessorExtractAudio(Processor):
         video_clip = VideoFileClip(fname)
 
         # Extract audio into mp3 file
-        mp3_file_name = f"{output_folder}/{item_name}.mp3"
-        video_clip.audio.write_audiofile(mp3_file_name, codec='mp3')
-        return
+#        mp3_file_name = f"{output_folder}/{item_name}.mp3"
+#        video_clip.audio.write_audiofile(mp3_file_name, codec='mp3')
+#        return
 
 
         chunks = math.ceil(video_clip.duration / self.duration_in_seconds)
@@ -55,3 +55,9 @@ class ProcessorExtractAudio(Processor):
             # Close the clips to release resources
             audio_clip.close()
             video_clip.close()
+
+if __name__ == '__main__':
+    base_folder = '/Users/junyang/church/data'  
+    processor = ProcessorExtractAudio()
+    processor.process(base_folder + '/' + 'video', '2019-07-28 罗马书六章1节', base_folder + '/audio')
+    pass

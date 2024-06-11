@@ -82,9 +82,15 @@ def update_script(request: UpdateRequest):
 def get_sermon(user_id:str, item: str, changes:str = None): 
     return sm.sermonManager.get_sermon_detail(user_id,item,changes)
 
-@app.get("/api/slide/{user_id}/{item}/{timestamp}")
+@app.get("/api/slide_text/{user_id}/{item}/{timestamp}")
 def get_slide(user_id:str, item: str, timestamp:int): 
     return sm.sermonManager.get_slide_text(user_id,item, timestamp)
+
+@app.get("/api/slide_image/{user_id}/{item}/{timestamp}")
+def get_slide_image(user_id:str, item: str, timestamp:int): 
+    return sm.sermonManager.get_slide_image(user_id,item, timestamp)
+
+
 
 @app.get("/api/permissions/{user_id}/{item}")
 def get_permissions(user_id:str,item:str) -> sm.Permission:
