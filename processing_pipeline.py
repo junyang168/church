@@ -13,7 +13,7 @@ from processor_pull_slide import ProcessorPullSlide
 from screen_detection import DectectBluescreen
 from patch import ProcessorPatch
 from processor_audio import ProcessorAudio
-from processor_correct_transcribe import ProcessorCorrectTranscribe
+from processor_correct_transcribe import ProcessorCorrectTranscription
 import json
 import datetime
 
@@ -23,7 +23,7 @@ class ProcessingPipeline:
                            ProcessorConvertVideo(),
                            ProcessorExtractAudio(),                            
                            ProcessorTranscribe(),
-                           ProcessorCorrectTranscribe()
+                           ProcessorCorrectTranscription()
                            ]
         self.base_folder = base_folder
         self.input_folder = input_folder
@@ -81,6 +81,42 @@ class ProcessingPipeline:
                         df.to_excel(self.control_file, index=True)
                 elif status == 'Pause':
                     continue
+            
+        with open(self.base_folder + '/config/sermon.json') as json_file:
+            sermon_data = json.load(json_file)
+
+        for i in reversed( range(len(sermon_data)) ):
+            sermon = sermon_data[i]
+            if sermon['status'] != 'in development':
+                continue
+            status = self.get_cell_value(df, sermon['item'], 'Correct')
+            if  pd.isna(status):
+                sermon_data.pop(i)
+            elif status == 'Completed' :
+                sermon['status'] = 'ready'
+        
+        for index, row in df.iterrows():
+            item_name = row.name
+            status = row['Correct']
+            type = 'audio' if row['copy audio'] == 'Completed' else 'vidoe'
+            if status != 'Completed':
+                continue
+            sermon = next((sermon for sermon in sermon_data if sermon['item'] == item_name), None)
+            if not sermon:
+                sermon = { 'item': item_name,
+                            'status': 'ready',
+                            'last_updated': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 
+                            'author': 'dallas.holy.logos@gmail.com',
+                            'type': type    
+                        }
+                sermon_data.append(sermon)
+
+        with open(self.base_folder + '/config/sermon.json', 'w', encoding='UTF-8') as json_file:  
+            json.dump(sermon_data, json_file, indent=4, ensure_ascii=False)
+
+
+
+
 
 
 

@@ -102,6 +102,7 @@ class ProcessorCorrectTranscription(Processor):
         else:
             curr_line = 0
         para = ''
+        para_limit = 500
         while curr_line < len(lines):
             line = lines[curr_line]
             para +=  line['text']
@@ -109,10 +110,15 @@ class ProcessorCorrectTranscription(Processor):
             line['line_no'] = curr_line
             segments.append( line )
             curr_line += 1
-            if len(para) < 500:
+            if len(para) < para_limit:
                 continue
             corrected_para = self.correct_paragraph(para)
-            paragraphs.extend(self.create_corrected_paragraph(para, corrected_para, segments, ignore_last_para = True))
+            new_paras = self.create_corrected_paragraph(para, corrected_para, segments, ignore_last_para = True)
+            if len(new_paras) == 0:
+                para_limit += 200
+                continue
+            paragraphs.extend(new_paras)
+
             curr_line = paragraphs[-1]['line_no'] + 1
             para = ''
             segments = []
@@ -136,5 +142,5 @@ class ProcessorCorrectTranscription(Processor):
 if __name__ == '__main__':
     base_folder = '/Users/junyang/church/data'  
     processor = ProcessorCorrectTranscription()
-    processor.process(base_folder + '/' + 'script', '2019-07-28 罗马书六章1节', base_folder + '/script_corrected')
+    processor.process(base_folder + '/' + 'script', '2019-08-25 罗马书六章1-14节', base_folder + '/script_corrected')
     pass

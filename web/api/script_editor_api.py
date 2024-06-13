@@ -80,7 +80,8 @@ def update_script(request: UpdateRequest):
 
 @app.get("/api/sermon/{user_id}/{item}/{changes}")
 def get_sermon(user_id:str, item: str, changes:str = None): 
-    return sm.sermonManager.get_sermon_detail(user_id,item,changes)
+    header, script = sm.sermonManager.get_sermon_detail(user_id,item,changes)
+    return {'header':header, 'script':script}
 
 @app.get("/api/slide_text/{user_id}/{item}/{timestamp}")
 def get_slide(user_id:str, item: str, timestamp:int): 

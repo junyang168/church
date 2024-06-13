@@ -7,7 +7,7 @@ def update_metadata(metadata_file: str, items: list, type: str):
     aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
     aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
     s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-    bucket_name = 'dallas-holy-logos'
+    bucket_name = os.getenv('AWS_S3_BUCKET_NAME') 
     sermon_key = 'config/sermon_dev.json'
     try:
         response = s3.get_object(Bucket=bucket_name, Key=sermon_key)
@@ -36,3 +36,5 @@ def update_metadata(metadata_file: str, items: list, type: str):
 
     sermons_data = json.dumps(sermons, ensure_ascii=False)
     s3.put_object(Body=sermons_data, Bucket=bucket_name, Key=sermon_key)
+
+

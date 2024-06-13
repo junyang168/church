@@ -61,6 +61,8 @@ class SermonManager:
         if not permissions.canRead:
             return "You don't have permission to read this item"
 
+        sermon = self._sm.get_sermon_metadata(user_id, item)
+
         sd = ScriptDelta(self.base_folder, item)
         script =  sd.get_script( changes == 'changes')
         for p in script:
@@ -68,7 +70,7 @@ class SermonManager:
                 ui = self.get_user_info( p.get('user_id') )
                 if ui:
                     p['user_name'] = ui.get('name')
-        return script
+        return sermon, script
     
     def get_slide_text(self, user_id:str, item:str, timestamp:int):
         permissions = self.get_sermon_permissions(user_id, item)

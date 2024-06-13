@@ -122,6 +122,13 @@ function turnOnEditor(current_para) {
     if( highlightCurrentPara(current_para) )
         return
 
+    player.pause();
+
+    if(current_para.data.type == 'comment' && current_para.data.text.startsWith('![image')) {
+        alert('Cannot edit comment')
+        return
+    }
+
     var textarea = document.createElement('textarea');
     textarea.className = 'paragraph_textarea';
     textarea.style.width = '100%';
@@ -233,7 +240,6 @@ function turnOnEditor(current_para) {
     simplemde.codemirror.setCursor({line: 0, ch: 0});
     simplemde.codemirror.focus();
 
-    player.pause();
 
 }
 
@@ -523,7 +529,7 @@ async function loadData(context) {
     var item_name = context.item_name
     var view_changes = context.view_changes
 
-    const [slide_text, paragraphs, timeline ] = await Promise.all([ 
+    const [slide_text, sermon, timeline ] = await Promise.all([ 
             loadFile(user_id, 'slide' , item_name , 'json'),
             loadScript(user_id , item_name , view_changes),
             loadFile(user_id,  'script' , item_name , 'jsonl')
@@ -551,7 +557,8 @@ async function loadData(context) {
 
     return {
         slides: slideData,
-        scripts: paragraphs,
+        header: sermon.header,
+        scripts: sermon.script,
         item:item_name            
     }    
 }
@@ -793,10 +800,18 @@ async function onLoaded() {
     else
         loadParagraphs(scriptData);
 
-    player = document.getElementById('player'); 
+    if(scriptData.header.type=='audio') {
+        player = document.getElementById('player_audio'); 
+        player.style.display = 'block';
+        player.src = 'data/video/' + scriptData.item + '.mp3';
+        document.getElementById('player').style.display = 'none';
+    }
+    else 
+    {
+        player = document.getElementById('player'); 
+        player.src = 'data/video/' + scriptData.item + '.mp4';
+    }
     player.ontimeupdate = function() {timeChanged()};
-    player.src = 'data/video/' + scriptData.item + '.mp4';
-
 
     var slideTextArea = document.getElementById('slide_text');
     slideTextArea.readOnly = !(permissions && permissions.canWrite);
