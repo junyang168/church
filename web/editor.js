@@ -4,6 +4,9 @@ var permissions = null;
 var user_id = null;
 var context = null;
 
+
+
+
 async function loadFile(user_id, type, item_name, ext) {
     try {
         url = `${api_prefix}load/${user_id}/${type}/${item_name}/${ext}`
@@ -65,6 +68,8 @@ function formatTime(seconds) {
 
 var simplemde = null;
 var currentPos = null;
+var cropper_paragraph = null;
+var cropper_toolbar = null;
 
 function onKeyup(cm,event) {
     var pos = cm.getCursor();
@@ -116,6 +121,45 @@ function highlightCurrentPara(current_para) {
     return true
 }
 
+function getImageInfo(markdownString) {
+    let regex = /!\[(.*?)\]\((.*?)\)/;
+    let match = markdownString.match(regex);
+    
+    if (match) {
+        let title = match[1];
+        let url = match[2];
+
+        sec = title.split(' ')
+        if(sec.length > 1) {
+            var imgInfo =  {x: parseFloat(sec[0]), y:parseFloat(sec[1]), width:parseFloat(sec[2]), height:parseFloat(sec[3]), url:url} 
+            imgInfo.rotate = sec.length > 4? parseFloat(sec[4]) : 0;
+            return imgInfo;
+        }
+        else
+            return {url:url}
+    
+    }
+    return null
+}
+
+function removeEditor() {
+    if(!simplemde)
+        return;
+    if (simplemde instanceof SimpleMDE) {
+        var currTA = simplemde.element
+        currTA.previousElementSibling.style.display = 'block';
+        simplemde.toTextArea();
+        currTA.parentNode.removeChild(currTA);        
+    } else if (simplemde instanceof Cropper)  {
+        var cbox = simplemde.getData()
+        setSlideImageStyle(cropper_paragraph, cbox);
+        cropper_toolbar.parentNode.removeChild(cropper_toolbar);
+        simplemde.destroy();
+
+    }
+    simplemde = null;
+}
+
 function turnOnEditor(current_para) {
     syncPlayerSlide(current_para.data.start_time);
 
@@ -124,9 +168,75 @@ function turnOnEditor(current_para) {
 
     player.pause();
 
-    if(current_para.data.type == 'comment' && current_para.data.text.startsWith('![image')) {
-        alert('Cannot edit comment')
-        return
+    removeEditor();
+
+    if(current_para.data.type == 'comment') {
+        var imgInfo = getImageInfo(current_para.data.text)
+        if(imgInfo) {
+            var toolbar = document.createElement('div');
+            toolbar.className = 'editor-toolbar';
+            toolbar.style.display = 'flex';
+            var anchor = document.createElement('a');
+            anchor.title = 'Crop Image';
+            anchor.className = 'fa-solid fa-cut';
+            anchor.onclick = function(e) {   
+                cbox = simplemde.getData()
+                image_text = `![${cbox.x} ${cbox.y} ${cbox.width} ${cbox.height} ${cbox.rotate}](${imgInfo.url})`
+                current_para.data.text = image_text
+                console.log('image_text:', image_text);
+
+                removeEditor();
+
+
+                if(!pendingSaves['scripts']) {
+                    pendingSaves['scripts'] = true;
+                    setTimeout(saveScript, saveDelay);
+                }
+
+        
+            }
+            toolbar.appendChild(anchor);
+
+            if(env == 'dev') {
+                var sliderContainer = document.createElement('div');
+                sliderContainer.className = 'slidecontainer';
+                var rotate = imgInfo.rotate? imgInfo.rotate : 0 
+                sliderContainer.innerHTML = `
+                <span>-30&#176;</span><input type="range" min="-30" max="30" value="${rotate}" id="myRange"><span>30&#176;</span>
+                <span>Rotate: <span class="slider_value"></span></span> `               
+                toolbar.appendChild(sliderContainer);
+
+                var slider = sliderContainer.getElementsByTagName("input")[0];
+                var output = sliderContainer.getElementsByClassName("slider_value")[0];
+                output.innerHTML = rotate + '&#176;'; // Display the default slider value
+                
+                // Update the current slider value (each time you drag the slider handle)
+                slider.oninput = function() {
+                    simplemde.rotateTo(slider.value);
+                    output.innerHTML = this.value + '&#176;';
+                } 
+            }
+    
+    
+            current_para.parentNode.insertBefore(toolbar, current_para);
+            var img = current_para.getElementsByTagName('img')[0]
+            var imgContainer = img.parentNode;
+            imgContainer.style.width = 'auto';
+            imgContainer.style.height = 'auto';
+            var imgstyle = img.style;
+            imgstyle.maxWidth = '100%';
+            imgstyle.width = 'auto';
+            imgstyle.height = 'auto';
+            
+            simplemde = new Cropper(img, {
+                zoomable:false,
+                data: imgInfo,
+                autoCrop: true
+            });
+            cropper_toolbar = toolbar;
+            cropper_paragraph = current_para;
+            return
+        }
     }
 
     var textarea = document.createElement('textarea');
@@ -139,13 +249,6 @@ function turnOnEditor(current_para) {
     current_para.parentNode.insertBefore(textarea, current_para.nextSibling);
     current_para.style.display = 'none';
 
-    if(simplemde) {
-        var currTA = simplemde.element
-        currTA.previousElementSibling.style.display = 'block';
-        simplemde.toTextArea();
-        currTA.parentNode.removeChild(currTA);        
-        simplemde = null
-    }
     simplemde = new SimpleMDE({ 
         toolbar: [
         {
@@ -407,10 +510,6 @@ async function load_slide_text() {
 }
 
 async function load_slide_image() {
-    para = simplemde.element.data;
-    if(para.type != 'comment') {
-        createCommentPara(para)
-    }
     
     player.pause()
     var currentTimeMs = Math.round(player.currentTime * 1000);
@@ -422,15 +521,16 @@ async function load_slide_image() {
 
     slide = await response.json();
 
-    var cm = simplemde.codemirror;
-    cm.replaceSelection(`![image](${encodeURIComponent(slide.image_url)})`);
-    cm.focus();
+    para = simplemde.element.data;
+    if(para.type != 'comment') {
+        createCommentPara(para, `![image](${encodeURIComponent(slide.image_url)})`)
+    }
      
 }
 
 
-function createCommentPara(para) {
-    comment_para = insertComment(para);
+function createCommentPara(para, text='') {
+    comment_para = insertComment(para, text);
     loadParagraphs(scriptData);
     sc = document.getElementById('sc');
     var carets =  sc.getElementsByClassName('caret')
@@ -454,10 +554,10 @@ function resetScriptIndex() {
     }    
 }
 
-function insertComment(para) {
+function insertComment(para, para_text) {
     if(para.type == 'comment')
         return para;
-    comment_data = { text:'', type:'comment', user_id:context.user_id, user_name:context.user_name, index:para.index}
+    comment_data = { text:para_text, type:'comment', user_id:context.user_id, user_name:context.user_name, index:para.index}
     scriptData.scripts.splice(para.s_index, 0, comment_data);
     return comment_data
 }
@@ -482,11 +582,45 @@ function loadParagraphs(scriptData) {
             <td><div class="paragraph">${marked.parse(para.text.trim())}</div></td>`;
         tr.ondblclick = onRowClicked 
         sc.appendChild(tr);
-        tr.getElementsByClassName('paragraph')[0].data = para;               
+        paragraph = tr.getElementsByClassName('paragraph')[0]
+        paragraph.data = para;               
         tr.getElementsByClassName('caret')[0].data = para;   
+
+        if(para.type == 'comment' && para.text.trim().startsWith('![')) {
+            var imageInfo = getImageInfo(para.text)
+            if(imageInfo) {
+               setSlideImageStyle(paragraph, imageInfo);
+            }
+        }
  
     })
 
+}
+
+function setSlideImageStyle(paragraph, imageInfo) {
+    if (!('width' in imageInfo)) 
+        return;
+
+    var image_container = paragraph.getElementsByTagName('p')[0];
+    const slide_image_width = paragraph.offsetWidth - 70;
+    image_container.style.width = slide_image_width + 'px';
+    image_container.style.height = slide_image_width * imageInfo.height / imageInfo.width + 'px';
+    image_container.style.overflow = 'hidden';
+    var img_width = slide_image_width / imageInfo.width * 1920;
+    var img_height = img_width * 1080 / 1920;
+    var img = image_container.getElementsByTagName('img')[0];
+    var style = img.style;
+    style.display = 'block';
+    style.width = img_width + 'px';
+    style.height = img_height + 'px';
+    style.minWidth = '0px';
+    style.minHeight = '0px';
+    style.maxWidth = 'none';
+    style.maxHeight = 'none';
+    style.transform = `translateX(-${imageInfo.x / 1920 * img_width}px) translateY(-${imageInfo.y / 1080 * img_height}px)`;
+    if(imageInfo.rotate != 0) {
+        style.transform += ` rotate(${imageInfo.rotate}deg)`;
+    }
 }
 
 function loadParagraphChanges(scriptChanges) {

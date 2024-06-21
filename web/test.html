@@ -1,75 +1,60 @@
 <html>
-  <body>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://kit.fontawesome.com/e69d7c1a7e.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js" integrity="sha512-JyCZjCOZoyeQZSd5+YEAcFgz2fowJ1F1hyJOXgtKu4llIa0KneLcidn5bwfutiehUTiOuK87A986BZJMko0eWQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" integrity="sha512-UtLOu9C7NuThQhuXXrGwx9Jb/z9zPQJctuAgNUBK3Z6kkSYT9wJ+2+dh6klS+TDBCV9kNPBbAxbVD+vCcfGPaA==" crossorigin="anonymous" referrerpolicy="no-referrer" />        
-    <script typ="text/javascript">
-        window.onload = function() {
-            return;
-            var image = document.getElementById('image');
-            var cropper = new Cropper(image, {
-                zoomable:false,
-                crop: function(event) {
-                    console.log(event.detail.x);
-                    console.log(event.detail.y);
-                    console.log(event.detail.width);
-                    console.log(event.detail.height);
-                }
-            });
-        };
-
- </script>
-
     <style>
-        .relative-container {
-            position: relative;
+        .slidecontainer {
+            width: 200px; /* Width of the outside container */
+          }
+          
+          /* The slider itself */
+          .slider {
+            -webkit-appearance: none;  /* Override default CSS styles */
+            appearance: none;
+            width: 100%; /* Full-width */
+            height: 25px; /* Specified height */
+            background: #d3d3d3; /* Grey background */
+            outline: none; /* Remove outline */
+            opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+            -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+            transition: opacity .2s;
+          }
+                /* Mouse-over effects */
+        .slider:hover {
+            opacity: 1; /* Fully shown on mouse-over */
         }
         
-        .spinner-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);  
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .spinner {
-            border: 16px solid #f3f3f3;
-            border-top: 16px solid #3498db;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 2s linear infinite;
-            display: block;
-            
+        /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none; /* Override default look */
+            appearance: none;
+            width: 25px; /* Set a specific slider handle width */
+            height: 25px; /* Slider handle height */
+            background: #04AA6D; /* Green background */
+            cursor: pointer; /* Cursor on hover */
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .slider::-moz-range-thumb {
+            width: 25px; /* Set a specific slider handle width */
+            height: 25px; /* Slider handle height */
+            background: #04AA6D; /* Green background */
+            cursor: pointer; /* Cursor on hover */
         }
-
-/* Make sure the size of the image fits perfectly into the container */
-img {
-    display: block;
-    width: 1000px;
-    height: 800px;  
-    /* This rule is very important, please don't ignore this */
-    object-fit: none;
-    object-position: -400px -50px;
-  }        
-        </style>
-
-
-        <div style="border:1px" >
-            <img id="image" src="data%2Fslide%2Fimages%2F2019-2-18%20%E8%89%AF%E5%BF%83-0.jpg" >
-        </div>
-
-  </body>
+    </style>
+    <script type="text/javascript">
+        window.onload = function() {
+        var slider = document.getElementById("myRange");
+        var output = document.getElementById("demo");
+        output.innerHTML = slider.value; // Display the default slider value
+        
+        // Update the current slider value (each time you drag the slider handle)
+        slider.oninput = function() {
+          output.innerHTML = this.value;
+        } 
+    }
+    </script>    
+    <body>
+    <div class="slidecontainer">
+        <span>-30&#176;</span><input type="range" min="-30" max="30" value="0" id="myRange"><span>30&#176;</span>
+        <p>Value: <span id="demo"></span></p>        
+    </div>    
+    <p style="width: 843px; height: 470.257px; overflow: hidden;"><img src="data%2Fslide%2Fimages%2F2019-2-18%20%E8%89%AF%E5%BF%83-0.jpg" alt="1277.4518988384248 913.2409793656449 381.6113993876135 212.87716637029402 28" class="" style="display: block; width: 4241.38px; height: 2385.78px; min-width: 0px; min-height: 0px; max-width: none; max-height: none; transform: translateX(-2821.96px) translateY(-2017.4px) rotate(0deg);"></p>
+</body>
 </html>
