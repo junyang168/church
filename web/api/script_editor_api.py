@@ -6,7 +6,14 @@ import boto3
 import json
 import os
 from dotenv import load_dotenv
-load_dotenv()
+env_file = os.getenv("ENV_FILE")
+print(f'env_file: {env_file}')
+if env_file:
+    load_dotenv(env_file)
+else:
+    load_dotenv()  # Fallback to default .env file in the current directory
+
+
 import sermon_manager as sm
 from script_delta import ScriptDelta
 from fastapi.responses import HTMLResponse
@@ -170,6 +177,8 @@ def search_script( req : SearchRequest):
 
 
 if __name__ == "__main__":
+
 #    save_to_s3(get_file_path('script_review', '2019-2-15 心mp4'), 'dallas-holy-logos', 'script_fixed/2019-2-15 心mp4.txt', 'junyang168@gmail.com')
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+#    import uvicorn
+#    uvicorn.run(app, host="0.0.0.0", port=8000)
+    pass

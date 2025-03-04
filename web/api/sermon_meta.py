@@ -34,7 +34,8 @@ class SermonMetaManager:
         aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
         aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         self.s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-        self.bucket_name = os.getenv('AWS_S3_BUCKET_NAME') 
+        self.bucket_name = os.getenv('AWS_S3_BUCKET_NAME')
+        print(f'bucket_name: {self.bucket_name}') 
         self.load_sermon_metadata()
         self.load_sermons_from_s3()
 
