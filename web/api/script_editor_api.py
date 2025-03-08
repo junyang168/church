@@ -70,7 +70,7 @@ def get_file_path(type:str, item:str, ext:str='.txt'):
     return os.path.join(api_folder, '..', f"data/{type}/{item}{ext}")
 
 
-@app.get("/api/load/{user_id}/{type}/{item}/{ext}")
+@app.get("/sc_api/load/{user_id}/{type}/{item}/{ext}")
 def load(user_id:str, type:str, item: str, ext:str='txt')->str: 
     permissions = sm.sermonManager.get_sermon_permissions(user_id, item)
     if not permissions.canRead:
@@ -80,61 +80,61 @@ def load(user_id:str, type:str, item: str, ext:str='txt')->str:
         data = file.read()
     return data
 
-@app.post("/api/update_script")
+@app.post("/sc_api/update_script")
 def update_script(request: UpdateRequest):
     return sm.sermonManager.update_sermon(request.user_id, request.type, request.item, request.data)
 
 
-@app.get("/api/sermon/{user_id}/{item}/{changes}")
+@app.get("/sc_api/sermon/{user_id}/{item}/{changes}")
 def get_sermon(user_id:str, item: str, changes:str = None): 
     header, script = sm.sermonManager.get_sermon_detail(user_id,item,changes)
     return {'header':header, 'script':script}
 
-@app.get("/api/slide_text/{user_id}/{item}/{timestamp}")
+@app.get("/sc_api/slide_text/{user_id}/{item}/{timestamp}")
 def get_slide(user_id:str, item: str, timestamp:int): 
     return sm.sermonManager.get_slide_text(user_id,item, timestamp)
 
-@app.get("/api/slide_image/{user_id}/{item}/{timestamp}")
+@app.get("/sc_api/slide_image/{user_id}/{item}/{timestamp}")
 def get_slide_image(user_id:str, item: str, timestamp:int): 
     return sm.sermonManager.get_slide_image(user_id,item, timestamp)
 
 
 
-@app.get("/api/permissions/{user_id}/{item}")
+@app.get("/sc_api/permissions/{user_id}/{item}")
 def get_permissions(user_id:str,item:str) -> sm.Permission:
     return sm.sermonManager.get_sermon_permissions(user_id, item)
 
-@app.get("/api/sermons/{user_id}")
+@app.get("/sc_api/sermons/{user_id}")
 def get_sermons(user_id:str) -> List[sm.Sermon]:
     return sm.sermonManager.get_sermons(user_id)
 
 
-@app.post("/api/assign")
+@app.post("/sc_api/assign")
 def assigned_to(req: AssignRequest):
     return sm.sermonManager.assign(req.user_id, req.item,req.action)
 
-@app.get("/api/bookmark/{user_id}/{item}")
+@app.get("/sc_api/bookmark/{user_id}/{item}")
 def get_bookmark(user_id:str, item:str):
     return sm.sermonManager.get_bookmark(user_id, item)
 
-@app.put("/api/bookmark/{user_id}/{item}/{index}")
+@app.put("/sc_api/bookmark/{user_id}/{item}/{index}")
 def set_bookmark(user_id:str, item:str, index:str):
     return sm.sermonManager.set_bookmark(user_id, item, index)
 
-@app.get("/api/users")
+@app.get("/sc_api/users")
 def get_users():
     return sm.sermonManager.get_users()
 
-@app.get("/api/user/{user_id}")
+@app.get("/sc_api/user/{user_id}")
 def get_user_info(user_id:str):
     return sm.sermonManager.get_user_info(user_id)
 
 
-@app.put("/api/publish/{user_id}/{item}")
+@app.put("/sc_api/publish/{user_id}/{item}")
 def publish(user_id:str, item:str):
     return sm.sermonManager.publish(user_id, item)
 
-@app.get("/api/final_sermon/{user_id}/{item}")
+@app.get("/sc_api/final_sermon/{user_id}/{item}")
 def get_sermon(user_id:str, item: str, published:str = None, remove_tags:bool = True): 
     return sm.sermonManager.get_final_sermon(user_id,item,published,remove_tags)
 
@@ -169,7 +169,7 @@ def get_sermon_page(item):
     return template.format(script=js, title=metadata.get('title'), html=html)
     
 
-@app.post("/api/search")
+@app.post("/sc_api/search")
 def search_script( req : SearchRequest):
     return sm.sermonManager.search_script(req.item, req.text_list)
     
@@ -179,6 +179,6 @@ def search_script( req : SearchRequest):
 if __name__ == "__main__":
 
 #    save_to_s3(get_file_path('script_review', '2019-2-15 心mp4'), 'dallas-holy-logos', 'script_fixed/2019-2-15 心mp4.txt', 'junyang168@gmail.com')
-#    import uvicorn
-#    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
     pass

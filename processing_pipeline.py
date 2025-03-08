@@ -9,8 +9,8 @@ from processor_extract_audio import ProcessorExtractAudio
 from processor_fix import ProcessorFix
 from processor_process_script import ProcessorProcessScript
 from processor_convert_video import ProcessorConvertVideo
-from processor_pull_slide import ProcessorPullSlide
-from screen_detection import DectectBluescreen
+#from processor_pull_slide import ProcessorPullSlide
+#from screen_detection import DectectBluescreen
 from patch import ProcessorPatch
 from processor_audio import ProcessorAudio
 from processor_correct_transcribe import ProcessorCorrectTranscription
@@ -19,17 +19,19 @@ import datetime
 
 class ProcessingPipeline:
     def __init__(self, base_folder:str, input_folder:str):
-        self.processors = [ProcessorAudio(), 
-                           ProcessorConvertVideo(),
-                           ProcessorExtractAudio(),                            
-                           ProcessorTranscribe(),
-                           ProcessorCorrectTranscription()
-                           ]
+        self.processors = [
+#                            ProcessorAudio(), 
+                            ProcessorConvertVideo(),
+                            ProcessorExtractAudio(),                            
+                            ProcessorTranscribe(),
+                            ProcessorCorrectTranscription()
+                        ]
         self.base_folder = base_folder
         self.input_folder = input_folder
         self.control_file = base_folder + '/Processing_stage.xlsx'
     
     def get_item_name(self, fname: str):
+        fname = fname.replace('/', '-')
         if '_' not in fname:
             return fname.split('.')[0].strip()
         else:
@@ -58,27 +60,20 @@ class ProcessingPipeline:
             input_folder = self.input_folder if p.get_input_folder_name()[0] == '/' else self.base_folder + '/' + p.get_input_folder_name()
             files = get_files(input_folder, p.get_file_extension())
             files.sort()
+            files = [f for f in files if  not f.startswith('2019 ')]
             items = [self.get_item_name(f) for f in files]
             p.setmetadata( items, self.base_folder + '/config/sermon.json')
             item_name = ''            
             for fname in files:
-                it_name = self.get_item_name(fname)                
-                if item_name != it_name:                    
-                    item_name = it_name
-                    last_item_index = self.get_item_last_index(files, item_name)
-                    is_append = False
-                else:
-                    is_append = True  
-                
+                item_name = self.get_item_name(fname)                
                 status = self.get_cell_value(df, item_name, p.get_name())
                 
                 if  pd.isna(status) or status == 'In Progress':
                     df.at[item_name, p.get_name()] = 'In Progress'
                     print(f'Processing {item_name} with {p.get_name()}')
-                    p.process(input_folder, item_name, self.base_folder + '/' + p.get_output_folder_name(), fname, is_append)
-                    if self.get_file_index(fname) == last_item_index:
-                        df.at[item_name, p.get_name()] = 'Completed'
-                        df.to_excel(self.control_file, index=True)
+                    p.process(input_folder, item_name, self.base_folder + '/' + p.get_output_folder_name(), fname, False)
+                    df.at[item_name, p.get_name()] = 'Completed'
+                    df.to_excel(self.control_file, index=True)
                 elif status == 'Pause':
                     continue
             
@@ -121,10 +116,10 @@ class ProcessingPipeline:
 
 
 
-base_folder = '/Users/junyang/church/data'
+base_folder = '/Volumes/Jun SSD/data'
 
 
-input_folder = '/Users/junyang/Library/CloudStorage/GoogleDrive-junyang168@gmail.com/My Drive/Church/video'
+input_folder = "/Volumes/Jun SSD/HLC"
 
 pipeline = ProcessingPipeline(base_folder,input_folder)
 

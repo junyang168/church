@@ -1,11 +1,8 @@
 from processor import Processor
-from moviepy.editor import VideoFileClip
-import math
+from moviepy.video.io.VideoFileClip import VideoFileClip
 from utils import get_files
-import cv2
-import json
-import datetime
 from metadata import update_metadata
+import os
 
 mp4_folder = '/Users/junyang/Downloads/video'
 mp3_file_path = '/Users/junyang/Church/data/audio'
@@ -27,11 +24,14 @@ class ProcessorConvertVideo(Processor):
         return ".mp4"
 
     def process(self, input_folder, item_name:str, output_folder:str, file_name:str = None, is_append:bool = False):
-        input_file = self.get_file_full_path_name(input_folder, item_name)
+        input_file = input_folder + '/' + file_name
         # Convert mp4 to h264 format
         video = VideoFileClip(input_file)
         video.write_videofile(output_folder + '/' + item_name + '.mp4', codec='libx264')
-        video.close()
+        video.close() 
+               
+        # Delete the input file
+        os.remove(input_file)
 
     def setmetadata(self, items, metadata_file: str): 
         update_metadata(metadata_file, items, 'video')      

@@ -21,7 +21,7 @@ def update_metadata(metadata_file: str, items: list, type: str):
         sermon = next((sermon for sermon in sermons if sermon['item'] == item), None)
         if not sermon:                
             sermon  = { 'item': item,
-                                'status': 'in development',
+                            'status': 'in development',
                             'last_updated': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 
                             'author': 'dallas.holy.logos@gmail.com',
                             'type': type,}
@@ -36,5 +36,9 @@ def update_metadata(metadata_file: str, items: list, type: str):
 
     sermons_data = json.dumps(sermons, ensure_ascii=False)
     s3.put_object(Body=sermons_data, Bucket=bucket_name, Key=sermon_key)
+    
+    with open(metadata_file, 'w', encoding='utf-8') as f:
+        f.write(sermons_data)
+
 
 

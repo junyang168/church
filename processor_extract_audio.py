@@ -1,5 +1,5 @@
 from processor import Processor
-from moviepy.editor import VideoFileClip
+from moviepy.video.io import VideoFileClip
 import math
 from utils import get_files
 

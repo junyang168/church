@@ -1,4 +1,4 @@
 var env = 'dev'
-api_prefix = env == 'dev'? 'http://localhost:8000/api/' :'/api/'    
+api_prefix = '/sc_api/'    
 saveDelay = env == 'dev'? 3000 : 10000
 

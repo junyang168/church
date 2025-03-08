@@ -1,12 +1,11 @@
 import glob
 import os
 import string
-import opencc
 
 def get_files(directory, extension = None):
     os.chdir(directory)
     extension = extension or ''
-    return glob.glob("*" + extension)
+    return glob.glob("**/*" + extension, recursive=True)
 
 def is_whitespace_or_punctuation(char):
     if char == '*':
@@ -42,15 +41,3 @@ def clean_string(text):
     return ''.join([ch for ch in text if not is_whitespace_or_punctuation(ch)])
 
 
-converter = opencc.OpenCC('s2t')
-
-def convert_to_traditional_chinese(text):
-    text = text.replace('*', '')
-    return converter.convert(text)
-
-
-from pypinyin import lazy_pinyin, Style
-
-def convert_to_pinyin(str):
-    py = lazy_pinyin(str)    
-    return ' '.join(py)
