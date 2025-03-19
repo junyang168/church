@@ -180,5 +180,5 @@ if __name__ == "__main__":
 
 #    save_to_s3(get_file_path('script_review', '2019-2-15 心mp4'), 'dallas-holy-logos', 'script_fixed/2019-2-15 心mp4.txt', 'junyang168@gmail.com')
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8008)
     pass

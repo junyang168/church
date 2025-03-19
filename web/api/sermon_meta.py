@@ -80,8 +80,9 @@ class SermonMetaManager:
             deliver_date = s.deliver_date
             if deliver_date:
                 dp = deliver_date.split('-')
-                deliver_date = datetime.datetime(int(dp[0]), int(dp[1]), int(dp[2]))    
-                s.deliver_date = deliver_date.strftime('%Y-%m-%d')
+                if len(dp) == 3:
+                    deliver_date = datetime.datetime(int(dp[0]), int(dp[1]), int(dp[2]))    
+                    s.deliver_date = deliver_date.strftime('%Y-%m-%d')
 
     def load_sermon_metadata(self):        
         with open(self.metadata_file_path) as f:

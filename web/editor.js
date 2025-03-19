@@ -663,22 +663,14 @@ async function loadData(context) {
     var item_name = context.item_name
     var view_changes = context.view_changes
 
-    const [slide_text, sermon, timeline ] = await Promise.all([ 
+    const [slide_text, sermon, timeline_text ] = await Promise.all([ 
             loadFile(user_id, 'slide' , item_name , 'json'),
             loadScript(user_id , item_name , view_changes),
-            loadFile(user_id,  'script' , item_name , 'jsonl')
+            loadFile(user_id,  'script' , item_name , 'json')
              ])
     var slideData = JSON.parse(slide_text);
-    var timelineData = timeline.split('\n').map(function(line) {
-        try {
-            return JSON.parse(line)
-        } catch (e) {
-            console.log('Error parsing line', line)
-            return null
-        }
-    }
-    )
-
+    var timelineData = JSON.parse(timeline_text).entries;
+    
     var timelineDictionary = {};
     for(i = 0; i < timelineData.length; i++) {
         item = timelineData[i];
@@ -937,13 +929,13 @@ async function onLoaded() {
     if(scriptData.header.type=='audio') {
         player = document.getElementById('player_audio'); 
         player.style.display = 'block';
-        player.src = 'data/video/' + scriptData.item + '.mp3';
+        player.src = 'video/' + scriptData.item + '.mp3';
         document.getElementById('player').style.display = 'none';
     }
     else 
     {
         player = document.getElementById('player'); 
-        player.src = 'data/video/' + scriptData.item + '.mp4';
+        player.src = 'video/' + scriptData.item + '.mp4';
     }
     player.ontimeupdate = function() {timeChanged()};
 
