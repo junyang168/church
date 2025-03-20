@@ -707,7 +707,7 @@ function setSlideText(currentTime) {
 }
 
 function syncPlayerSlide(currentTime) {
-    if(!currentTime)
+    if(currentTime === null)
         return;
     setSlideText(currentTime);
     player.currentTime = currentTime;

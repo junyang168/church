@@ -16,14 +16,7 @@ class ScriptDelta:
     def __init__(self, base_folder:str, item_name:str) -> None:
         self.base_folder = base_folder
         self.item_name = item_name
-        self.bucket_name = os.getenv('AWS_S3_BUCKET_NAME') 
-        self.aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
-        self.aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         self.timelineDictionary = self.loadTimeline()
-
-    
-    def get_s3(self):
-        return boto3.client('s3', aws_access_key_id=self.aws_access_key_id, aws_secret_access_key=self.aws_secret_access_key)
 
 
 
@@ -38,8 +31,10 @@ class ScriptDelta:
             return [ p.get('text') for p in  self.review ]
     
     def loadTimeline(self):
-        with jsonlines.open(self.base_folder +  '/script/' + self.item_name + '.jsonl', 'r') as f:            
-            timelineData =list(f.iter())   
+        with open(self.base_folder +  '/script/' + self.item_name + '.json', 'r') as f:           
+            timeData = json.load(f) 
+
+            timelineData = timeData['entries']  
             for i in range(1, len(timelineData)):
                 timelineData[i-1]['next_item'] = timelineData[i]['index'] if i < len(timelineData) else None
 
@@ -59,10 +54,15 @@ class ScriptDelta:
         return new_tag
     
 
-    def calcuateTime(self, index, timestamp):
-        sec = index.split('_')[0]
+    def calcuateTime(self,index, timestamp):
+        if str(index).find('_') >= 0:
+            sec = index.split('_')[0]
+        else:
+            sec = 1
         ts = timestamp.split(',')[0].split(':')
         return (int(sec) - 1) * 60 * 20 + int(ts[0]) * 60 * 60 + int(ts[1]) * 60 + int(ts[2])
+        
+
 
     def formatTime(self, time):
         h = time // 3600
@@ -74,22 +74,39 @@ class ScriptDelta:
         paragraphs = [ p for p in paragraphs if p.get('type') != 'comment']
         for i in range(0, len(paragraphs)):
             para = paragraphs[i]
-            timelineItem = self.timelineDictionary[  paragraphs[i-1]['index'] ] if i > 0 else None
-            if timelineItem:
-                start_item =  self.timelineDictionary[timelineItem['next_item']]
-                para['start_index'] = start_item['index']
-                para['start_time'] = self.calcuateTime( start_item['index'] , start_item['start_time'])
-                para['start_timeline'] = self.formatTime(para['start_time'])
-            else:
-                para['start_timeline'] = '00:00:00'
-                para['start_index'] = '0'
-                para['start_time'] = 0
 
-            this_timeline = self.timelineDictionary[ para['index'] ]
-            if this_timeline: 
-                para['end_time'] = self.calcuateTime( this_timeline['index'], this_timeline['end_time']);
+            if para.get('end_index'):
+                start_item = self.timelineDictionary[  para['index'] ] 
+                if start_item:
+                    para['start_index'] = start_item['index']
+                    para['start_time'] = self.calcuateTime(start_item['index'], start_item['start'])
+                    para['start_timeline'] = self.formatTime(para['start_time'])
+                else:
+                    para['start_timeline'] = '00:00:00'
+                    para['start_index'] = '0'
+                    para['start_time'] = 0                    
+
+                this_timeline = self.timelineDictionary[ para['end_index'] ]
+                if this_timeline:
+                    para['end_time'] = self.calcuateTime(this_timeline['index'], this_timeline['end'])
+                else:
+                    para['end_time'] = 9999999999
             else:
-                para['end_time'] = 9999999999
+                timelineItem = self.timelineDictionary[  paragraphs[i-1]['index'] ] if i > 0 else None
+                if timelineItem:
+                    start_item =  self.timelineDictionary[timelineItem['next_item']]
+                    para['start_index'] = start_item['index']
+                    para['start_time'] = self.calcuateTime(start_item['index'], start_item['start'])
+                    para['start_timeline'] = self.formatTime(para['start_time'])
+                else:
+                    para['start_timeline'] = '00:00:00'
+                    para['start_index'] = '0'
+                    para['start_time'] = 0                    
+                this_timeline = self.timelineDictionary[this_timeline['index'], this_timeline['end'] ]
+                if this_timeline:                 
+                    para['end_time'] = self.calcuateTime( this_timeline);
+                else:
+                    para['end_time'] = 9999999999
 
     def create_paragraph(self, paragraph, text):
         new_paragraph = paragraph.copy()
@@ -181,17 +198,6 @@ class ScriptDelta:
 
         return script_changes
     
-    def save_to_s3(self, file_path: str, bucket_name: str, object_key: str, author:str):
-        # Load the environment variables from .env file
-
-        # Get the AWS access key and secret key from environment variables
-        aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
-        aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-
-        # Use the access key and secret key in the save_to_s3 function
-        s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-        s3.upload_file(file_path, bucket_name, object_key, ExtraArgs={'Metadata': {'author': author}})
-    
   
     def save_script(self,user_id:str, type:str, item:str, data):
         #update local file        
@@ -210,8 +216,6 @@ class ScriptDelta:
 
             json.dump(data_dicts, file, ensure_ascii=False, indent=4)    
 
-        #update s3
-        self.save_to_s3(file_path, self.bucket_name, f"{folder}/{item}.json", user_id)
         return {"message": f"{folder} updated successfully"}
 
 
@@ -239,31 +243,32 @@ class ScriptDelta:
 
     def get_final_script(self, is_published:bool=True, remove_tags:bool=True):
         if is_published:
-            s3 = self.get_s3()
-            response = s3.get_object(Bucket=self.bucket_name, Key='script_published/' + self.item_name + '.json')
-            sermon_data =  response['Body'].read().decode('utf-8')
-            sermon_detail =  json.loads(sermon_data)
-            metadata = response['Metadata']
+            with open( self.base_folder +  '/script_published/' + self.item_name + '.json', 'r') as file1:
+                sermon_detail = json.load(file1)
         else:
             self.loadReviewScript()
             sermon_detail = self.review
-            metadata = {}
         
         if remove_tags:
             sermon_detail = self.get_clean_script(sermon_detail)
-        return { 'metadata': metadata, 'script': sermon_detail}
+        return sermon_detail
     
 
 
 
     def publish(self, author:str):
-
         published_script = self.get_final_script_data()
-        
-        s3 = self.get_s3()
-
-        sermon_data = json.dumps(published_script, ensure_ascii=False)
-        s3.put_object(Body=sermon_data, Bucket=self.bucket_name, Key='script_published/' + self.item_name + '.json', Metadata={'author': author, 'published_date': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')})
+        published = {
+            'metadata': {
+                'author': author,
+                'title': self.item_name,
+                'status': 'published',
+                'last_updated': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+            },
+            'script': published_script
+        }
+        with open( self.base_folder +  '/script_published/' + self.item_name + '.json', 'w') as file1:
+            json.dump(published, file1, ensure_ascii=False, indent=4)
 
     def search(self, text_list:list[str]):
         published_script = self.get_final_script(True)

@@ -6,6 +6,10 @@ from utils import is_whitespace_or_punctuation
 import os
 import json
 import math
+#from together import Together
+#from groq import Groq
+import os
+from openai import OpenAI
 
 class ProcessorCorrectTranscription(Processor):
     def get_name(self):
@@ -15,32 +19,96 @@ class ProcessorCorrectTranscription(Processor):
         return "script"
 
     def get_output_folder_name(self):
-        return "script_corrected"
+        return "script_patched"
 
     def get_file_extension(self):
         return ".jsonl"
     
+    def markdown_to_json(self, markdown: str, is_json: bool = False) -> dict:
+        """Convert markdown-formatted JSON string to Python dictionary.
+        
+        Args:
+            markdown: String containing JSON wrapped in markdown code block
+            
+        Returns:
+            Parsed dictionary from JSON content
+        """
+        if is_json:
+            return json.loads(markdown)
+        
+        json_tag = "```json"
+        start_idx = markdown.find(json_tag)
+        if start_idx < 0:
+            raise ValueError("No JSON content found in markdown")
+        end_idx = markdown.find("```", start_idx + len(json_tag))
+        if end_idx == -1:
+            raise ValueError("No closing code block found in markdown")
+        json_str = markdown[start_idx + len(json_tag):end_idx].strip()
+        return json.loads(json_str)
 
 
-    def correct_paragraph(self, para:str):
+    def correct_paragraph(self, previous_text: str, current_text: str):
+        json_format = """
+        ```json
+        [
+            {
+                "start_index": 1
+                "end_index": 3
+                "content": "第一段"
+            },
+            {
+                "start_index": 2
+                "end_index": 4
+                "content": "第二段"
+            }
+        ]    
+        ```
+        """
 
-        system_prompt = "下面文字是根據基督教牧師講道的錄音轉錄的。请分段落，改正错别字。回答使用中文繁體。儘返回改正結果"
+        ai_prompt = f"""作为转录编辑，下面文字是根據基督教牧師講道的錄音轉錄的。請分段落，改正轉錄錯誤，並保持前後文連貫性。注意
+        - 保留索引
+        - 保留原意，不要改變講道的內容
+        - 段落儘量不要太短 
+        回答符合下面JSON格式：
+        {json_format}
+        前文上下文：{previous_text} 
+        待修改內容：{current_text}                
+        """
+#        client = Together()
+#        model="deepseek-ai/DeepSeek-R1",
+#        model = "qwen-qwq-32b"
 
-        response = openai.chat.completions.create(
-            model="gpt-4o",
-            messages=[
+        # Initialize the client with the API key from the environment variable
+#        client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        model="deepseek-r1"
+
+        client = OpenAI(
+            api_key=os.getenv("DASHSCOPE_API_KEY"),  # 如何获取API Key：https://help.aliyun.com/zh/model-studio/developer-reference/get-api-key
+            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
+        )
+
+
+        response = client.chat.completions.create(
+            model=model,
+            messages=[        
                 {
-                    "role": "system",
-                    "content": system_prompt
-                },                
-                {"role": "user", 
-                 "content": para
-                }],
-            max_tokens=1500
+                    "role": "user",
+                    "content": ai_prompt
+                }
+            ],
+#            max_tokens=10000,
+#            temperature=0.6,
+#            top_p=0.95,
+#            top_k=50,
+#            repetition_penalty=1,
+#            stop=["<｜end▁of▁sentence｜>"],
+#            stream=False
+
         )
         res = response.choices[0].message.content
-        print(res)
-        return res
+        return self.markdown_to_json(res)
+        
+        
     
     def find_closest_segment(self, segments:list, prev_seg:int, next_idx:int ):
         min_d = 100000
@@ -83,64 +151,65 @@ class ProcessorCorrectTranscription(Processor):
                 new_idx += len(ele[2:])
         return paragraphs
 
+    def format_paragraph(self, paragraph:str, is_end:bool = False):
+        paragraphs = paragraph.split('\n\n')
+        index = 0
+        if not is_end and len(paragraphs) > 1:
+            p = paragraphs[-1]
+            first_index1 = p.find('[')
+            first_index2 = p.find(']', first_index1+1)
+            index = int(p[first_index1+1:first_index2])            
+            return paragraphs[:-1] , index
+        else:
+            return paragraphs, index
 
+    
     def process(self, input_folder, item_name:str, output_folder:str, file_name:str = None, is_append:bool = False):
-        script_file_name = self.get_file_full_path_name(input_folder, item_name)
+        srt_file_name = os.path.join(input_folder, item_name + '.json')
         output_file_name = os.path.join(output_folder, item_name + '.json')
 
-        if  os.path.exists(output_file_name):
-            with open(output_file_name,'r') as f:
-                paragraphs = json.load(f)
-        else:
-            paragraphs = []
-        with jsonlines.open(script_file_name) as reader:
-            lines = [ line for line in reader ]
-        
+        with open(srt_file_name, 'r') as fsc:
+            srt_data = json.load(fsc)
+        sorted_data = sorted(srt_data['entries'], key=lambda x: x['index'])
         segments = []
-        if paragraphs:
-            curr_line = next( ( curr_line for curr_line, line in enumerate(lines) if line['index'] == paragraphs[-1]['index'] ),-1) + 1
-        else:
-            curr_line = 0
+        curr_line = 0
         para = ''
-        para_limit = 500
-        while curr_line < len(lines):
-            line = lines[curr_line]
-            para +=  line['text']
-            line['position'] = len(para)
-            line['line_no'] = curr_line
-            segments.append( line )
-            curr_line += 1
+        para_limit = 1000
+        prev_para = ''
+        paragraphs = []
+        index = 0
+        while index < len(sorted_data):
+            line = sorted_data[index]
+            para +=  f"[{line['index']}]{line['text']}" 
             if len(para) < para_limit:
+                index += 1
                 continue
-            corrected_para = self.correct_paragraph(para)
-            new_paras = self.create_corrected_paragraph(para, corrected_para, segments, ignore_last_para = True)
-            if len(new_paras) == 0:
-                para_limit += 200
-                continue
-            paragraphs.extend(new_paras)
-
-            curr_line = paragraphs[-1]['line_no'] + 1
+            print('Processing index:', index)
+            corrected_para = self.correct_paragraph(prev_para, para)
+            prev_para = '\n\n'.join( [ f"{p['content']}" for p in corrected_para[-3:-1]] )
+            paragraphs.extend(corrected_para[:-1])
             para = ''
-            segments = []
+            index = corrected_para[-1]['start_index'] - 1
+        if para:
+            corrected_para = self.correct_paragraph(prev_para, para)
+            paragraphs.extend(corrected_para)
 
-            self.save(output_file_name, paragraphs)
 
-
-        corrected_para = self.correct_paragraph(para)
-        paragraphs.extend(self.create_corrected_paragraph(para, corrected_para, segments, ignore_last_para=False))
         self.save(output_file_name, paragraphs)
+        return True
 
 
     def save(self, output_file_name, paragraphs):
-        for p in paragraphs:
-            if 'line_no' in p:
-                p.pop('line_no')
+        for entry in paragraphs:
+            entry['index'] = entry.pop('start_index')
+            entry['text'] = entry.pop('content')        
+
         with open( output_file_name, 'w', encoding='UTF-8') as f:
             json.dump(paragraphs, f, indent=4, ensure_ascii=False)
         
 
 if __name__ == '__main__':
-    base_folder = '/Users/junyang/church/data'  
+    base_folder = '/Volumes/Jun SSD/data'  
     processor = ProcessorCorrectTranscription()
-    processor.process(base_folder + '/' + 'script', '2019-08-25 罗马书六章1-14节', base_folder + '/script_corrected')
+    processor.process(base_folder + '/' + 'script', 'S 200405 羅11 1-10 揀選2', base_folder + '/script_corrected')
     pass

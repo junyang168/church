@@ -1,5 +1,5 @@
 from processor import Processor
-from moviepy.video.io import VideoFileClip
+from moviepy.video.io.VideoFileClip import VideoFileClip
 import math
 from utils import get_files
 
@@ -32,30 +32,11 @@ class ProcessorExtractAudio(Processor):
         video_clip = VideoFileClip(fname)
 
         # Extract audio into mp3 file
-#        mp3_file_name = f"{output_folder}/{item_name}.mp3"
-#        video_clip.audio.write_audiofile(mp3_file_name, codec='mp3')
-#        return
-
-
-        chunks = math.ceil(video_clip.duration / self.duration_in_seconds)
+        mp3_file_name = f"{output_folder}/{item_name}.mp3"
+        video_clip.audio.write_audiofile(mp3_file_name, codec='mp3')
         video_clip.close()
-
-        for chunk_index in range(chunks):    
-            # Cut the first 'duration_in_seconds' of the video clip
-            if chunk_index == chunks - 1 :
-                end = None
-            else:
-                end = (chunk_index +1) * self.duration_in_seconds
-            video_clip = VideoFileClip(fname)
-            audio_clip = video_clip.subclip(chunk_index * self.duration_in_seconds, end).audio
-            
-            # Write the audio clip to an MP3 file
-            mp3_file_name = f"{output_folder}/{item_name}_{chunk_index+1}.mp3"
-            audio_clip.write_audiofile(mp3_file_name, codec='mp3')
-            # Close the clips to release resources
-            audio_clip.close()
-            video_clip.close()
-
+        return True
+    
 if __name__ == '__main__':
     base_folder = '/Users/junyang/church/data'  
     processor = ProcessorExtractAudio()

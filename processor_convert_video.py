@@ -26,12 +26,17 @@ class ProcessorConvertVideo(Processor):
     def process(self, input_folder, item_name:str, output_folder:str, file_name:str = None, is_append:bool = False):
         input_file = input_folder + '/' + file_name
         # Convert mp4 to h264 format
-        video = VideoFileClip(input_file)
-        video.write_videofile(output_folder + '/' + item_name + '.mp4', codec='libx264')
-        video.close() 
-               
-        # Delete the input file
-        os.remove(input_file)
+        try:
+            video = VideoFileClip(input_file)
+            video.write_videofile(output_folder + '/' + item_name + '.mp4', codec='libx264')
+            video.close() 
+                
+            # Delete the input file
+            os.remove(input_file)
+            return True
+        except Exception as e:
+            print(f"Error converting {input_file} to h264 format: {e}")
+            return False
 
     def setmetadata(self, items, metadata_file: str): 
         update_metadata(metadata_file, items, 'video')      
