@@ -1,0 +1,1 @@
+for f in *.mp4; do ffmpeg -i "$f" -vf "scale=854:480" -c:v libx264 -c:a copy "/opt/homebrew/var/www/church/web/video/$f"; done

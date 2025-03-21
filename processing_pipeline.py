@@ -21,10 +21,10 @@ class ProcessingPipeline:
     def __init__(self, base_folder:str, input_folder:str):
         self.processors = [
 #                            ProcessorAudio(), 
-                            ProcessorConvertVideo(),
-                            ProcessorExtractAudio(),                            
-                            ProcessorTranscribe(),
-                            ProcessorCorrectTranscription()
+#                            ProcessorConvertVideo(),
+#                            ProcessorExtractAudio(),                            
+#                            ProcessorTranscribe(),
+#                            ProcessorCorrectTranscription()
                         ]
         self.base_folder = base_folder
         self.input_folder = input_folder
@@ -71,9 +71,9 @@ class ProcessingPipeline:
                 if  pd.isna(status) or status == 'In Progress':
                     df.at[item_name, p.get_name()] = 'In Progress'
                     print(f'Processing {item_name} with {p.get_name()}')
-                    p.process(input_folder, item_name, self.base_folder + '/' + p.get_output_folder_name(), fname, False)
-                    df.at[item_name, p.get_name()] = 'Completed'
-                    df.to_excel(self.control_file, index=True)
+                    if p.process(input_folder, item_name, self.base_folder + '/' + p.get_output_folder_name(), fname):
+                        df.at[item_name, p.get_name()] = 'Completed'
+                        df.to_excel(self.control_file, index=True)
                 elif status == 'Pause':
                     continue
             
@@ -92,8 +92,8 @@ class ProcessingPipeline:
         
         for index, row in df.iterrows():
             item_name = row.name
-            status = row['Correct']
-            type = 'audio' if row['copy audio'] == 'Completed' else 'vidoe'
+            status = row['Title']
+            type = 'audio' if row['copy audio'] == 'Completed' else 'video'
             if status != 'Completed':
                 continue
             sermon = next((sermon for sermon in sermon_data if sermon['item'] == item_name), None)
