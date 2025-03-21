@@ -505,11 +505,15 @@ async function load_slide_text() {
     
     side_text = await extract_slide_text();
 
-    simplemde.value('> ' + slide.text);
+    simplemde.value( slide.text);
 
 }
 
 async function load_slide_image() {
+    para = simplemde.element.data;
+    if(para.type != 'comment') {
+        createCommentPara(para)
+    }
     
     player.pause()
     var currentTimeMs = Math.round(player.currentTime * 1000);
@@ -521,10 +525,10 @@ async function load_slide_image() {
 
     slide = await response.json();
 
-    para = simplemde.element.data;
-    if(para.type != 'comment') {
-        createCommentPara(para, `![image](${encodeURIComponent(slide.image_url)})`)
-    }
+    var cm = simplemde.codemirror;
+    cm.replaceSelection(`![image](${encodeURIComponent(slide.image_url)})`);
+    cm.focus();
+
      
 }
 
@@ -707,7 +711,7 @@ function setSlideText(currentTime) {
 }
 
 function syncPlayerSlide(currentTime) {
-    if(currentTime === null)
+    if(currentTime === null || currentTime === undefined)
         return;
     setSlideText(currentTime);
     player.currentTime = currentTime;
