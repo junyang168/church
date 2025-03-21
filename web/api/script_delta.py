@@ -243,17 +243,19 @@ class ScriptDelta:
 
     def get_final_script(self, is_published:bool=True, remove_tags:bool=True):
         if is_published:
-            with open( self.base_folder +  '/script_published/' + self.item_name + '.json', 'r') as file1:
-                sermon_detail = json.load(file1)
+            s3 = self.get_s3()
+            response = s3.get_object(Bucket=self.bucket_name, Key='script_published/' + self.item_name + '.json')
+            sermon_data =  response['Body'].read().decode('utf-8')
+            sermon_detail =  json.loads(sermon_data)
+            metadata = response['Metadata']
         else:
             self.loadReviewScript()
             sermon_detail = self.review
+            metadata = {}
         
         if remove_tags:
             sermon_detail = self.get_clean_script(sermon_detail)
-        return sermon_detail
-    
-
+        return { 'metadata': metadata, 'script': sermon_detail}
 
 
     def publish(self, author:str):
