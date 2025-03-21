@@ -48,5 +48,5 @@
 ### Script Editor API
 - launchctl load ~/Library/LaunchAgents/com.script_editor.service.plist
 - launchctl start script_editor.service
+- launchctl unload ~/Library/LaunchAgents/com.script_editor.service.plist
 - uvicorn --reload --host 0.0.0.0  --port 8000 --app-dir /opt/homebrew/var/www/church/web/api script_editor_api:app
-- launchctl stop script_editor.service

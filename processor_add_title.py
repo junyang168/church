@@ -1,11 +1,7 @@
 from processor import Processor
 import openai
-import jsonlines
-import difflib
-from utils import is_whitespace_or_punctuation
 import os
 import json
-import math
 #from together import Together
 #from groq import Groq
 import os
@@ -13,7 +9,7 @@ from openai import OpenAI
 from metadata import update_metadata_item_title
 
 
-class ProcessorCorrectTranscription(Processor):
+class ProcessorAddTitle(Processor):
     def get_name(self):
         return "Title"
 
@@ -95,6 +91,6 @@ class ProcessorCorrectTranscription(Processor):
 
 if __name__ == '__main__':
     base_folder = '/Volumes/Jun SSD/data'  
-    processor = ProcessorCorrectTranscription()
+    processor = ProcessorAddTitle()
     processor.process(base_folder + '/' + processor.get_input_folder_name(), 'S 190512-GH010035', base_folder + '/' + processor.get_output_folder_name(), 'sermon.json')
     pass

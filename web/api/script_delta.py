@@ -96,15 +96,16 @@ class ScriptDelta:
                 if timelineItem:
                     start_item =  self.timelineDictionary[timelineItem['next_item']]
                     para['start_index'] = start_item['index']
-                    para['start_time'] = self.calcuateTime(start_item['index'], start_item['start'])
+                    para['start_time'] = self.calcuateTime( start_item['index'] , start_item['start'])
                     para['start_timeline'] = self.formatTime(para['start_time'])
                 else:
                     para['start_timeline'] = '00:00:00'
                     para['start_index'] = '0'
-                    para['start_time'] = 0                    
-                this_timeline = self.timelineDictionary[this_timeline['index'], this_timeline['end'] ]
-                if this_timeline:                 
-                    para['end_time'] = self.calcuateTime( this_timeline);
+                    para['start_time'] = 0
+
+                this_timeline = self.timelineDictionary[ para['index'] ]
+                if this_timeline: 
+                    para['end_time'] = self.calcuateTime( this_timeline['index'], this_timeline['end']);
                 else:
                     para['end_time'] = 9999999999
 

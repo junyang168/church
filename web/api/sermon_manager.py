@@ -77,7 +77,7 @@ class SermonManager:
         if not permissions.canWrite:
             return "You don't have permission to read this item"
         
-        i2t = ImageToText(self.base_folder, item)
+        i2t = ImageToText(item)
         txt = i2t.extract_slide(timestamp)
         return {'text': txt}
         
@@ -86,8 +86,8 @@ class SermonManager:
         if not permissions.canWrite:
             return "You don't have permission to read this item"
         
-        i2t = ImageToText(self.base_folder, item)
-        img_url = i2t.get_slide_image_url(timestamp)
+        i2t = ImageToText(item)
+        img_url = i2t.get_slide_image_url(self.base_folder, timestamp)
         return {'image_url': img_url}
 
 
