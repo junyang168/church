@@ -37,3 +37,10 @@
 - Use [NoIP's dynamic DNS](https://my.noip.com/) - holylogos.servehttp.com
 - [Enable SSL using Let's Encrypt](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-22-04) 
 - Tried Route 53. Unable to point registed domain to work
+
+### Push to Test or Dev Site
+- push_to_live.py
+- source JunSSD/data
+- test /Users/junyang/church/web/data
+- production /opt/homebrew/var/www/church/web/data
+- data copied :  config/sermon.json , script, script_patched

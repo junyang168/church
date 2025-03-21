@@ -44,7 +44,10 @@ def find_item(item):
             return line
     return None
 
-with open("web/data/config/sermon.json", "r", encoding="utf-8") as f:
+base_dir = '/Volumes/Jun SSD/data'
+meta_file_name = os.path.join(base_dir, 'config/sermon.json')
+
+with open(meta_file_name, "r", encoding="utf-8") as f:
     sermons = json.load(f)
 
 for sermon in sermons:
@@ -52,8 +55,10 @@ for sermon in sermons:
     if item:
         sermon['deliver_date'] = item[ "last_modified"].strftime('%Y-%m-%d')
 
-with open("web/data/config/sermon.json", "w", encoding="utf-8") as f:
-    json.dump(sermons, f, ensure_ascii=False, indent=2)
+
+with open(meta_file_name, 'w', encoding='UTF-8') as json_file:  
+    json.dump(sermons, json_file, indent=4, ensure_ascii=False)
+
 
 aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
 aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
