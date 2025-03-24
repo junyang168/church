@@ -6,6 +6,7 @@ from PIL import Image
 from google import genai
 from google.genai.types import HttpOptions, Part
 import json
+from screen_detector import screen_detector
 
 
 class ImageToText:
@@ -43,8 +44,15 @@ class ImageToText:
         video = cv2.VideoCapture(self.video_path)
         video.set(cv2.CAP_PROP_POS_MSEC, timestamp )
         success, frame = video.read()
-        roi_x, roi_y, roi_w, roi_h = self.roi
-        roi_frame =  frame[roi_y:roi_y+roi_h, roi_x:roi_x+roi_w]
+        if not success:
+            return None        
+        roi, _ = screen_detector.detect_screen(frame)
+        if roi:
+            roi_x, roi_y, roi_w, roi_h = self.roi
+            roi_frame =  frame[roi_y:roi_y+roi_h, roi_x:roi_x+roi_w]
+        else:
+            roi_frame = frame
+        video.release()
         return roi_frame
     
     def extract_slide(self,  timestamp:int):
@@ -57,15 +65,10 @@ class ImageToText:
         cv2.imwrite(os.path.join(script_base_dir,'script_review', img_path), frame)
         return f"data/script_review/{img_path}"
 
-
-
-
- 
-
 if __name__ == '__main__' :
     item_name = 'S 190512-GH020035'
     extractor = ImageToText(item_name)
     url = extractor.get_slide_image_url('/Volumes/Jun SSD/data', 30000)
     print(url)
-    text = extractor.extract_slide(30000)
-    print(text)
+#    text = extractor.extract_slide(30000)
+#    print(text)
