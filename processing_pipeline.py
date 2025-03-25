@@ -14,6 +14,7 @@ from processor_convert_video import ProcessorConvertVideo
 from patch import ProcessorPatch
 from processor_audio import ProcessorAudio
 from processor_correct_transcribe import ProcessorCorrectTranscription
+from processor_add_title import ProcessorAddTitle
 import json
 import datetime
 
@@ -24,7 +25,8 @@ class ProcessingPipeline:
 #                            ProcessorConvertVideo(),
 #                            ProcessorExtractAudio(),                            
 #                            ProcessorTranscribe(),
-#                            ProcessorCorrectTranscription()
+                            ProcessorCorrectTranscription(),
+                            ProcessorAddTitle()
                         ]
         self.base_folder = base_folder
         self.input_folder = input_folder
@@ -111,14 +113,7 @@ class ProcessingPipeline:
 
 
 
-
-
-
-
-
 base_folder = '/Volumes/Jun SSD/data'
-
-
 input_folder = "/Volumes/Jun SSD/HLC"
 
 pipeline = ProcessingPipeline(base_folder,input_folder)
