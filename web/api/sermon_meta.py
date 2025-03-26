@@ -89,7 +89,7 @@ class SermonMetaManager:
             sermon_meta = json.load(f)
 
         sermon_dev = self.load_dev_sermon()
-        self.merge_dev(sermon_meta, sermon_dev)
+#        self.merge_dev(sermon_meta, sermon_dev)
 
 
         
