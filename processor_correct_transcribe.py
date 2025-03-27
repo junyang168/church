@@ -10,6 +10,8 @@ import math
 #from groq import Groq
 import os
 from openai import OpenAI
+import re
+from llm import call_llm
 
 class ProcessorCorrectTranscription(Processor):
     def get_name(self):
@@ -51,65 +53,26 @@ class ProcessorCorrectTranscription(Processor):
         json_format = """
         ```json
         [
-            {
-                "start_index": 1
-                "end_index": 3
-                "content": "第一段"
-            },
-            {
-                "start_index": 2
-                "end_index": 4
-                "content": "第二段"
-            }
+            "[1]聖經強調：[2]你信主要繼續地信，你維持信心到底，你就得救。",
+            "[3]有很多人認為說，[4]約翰福音第十章二十六節"
         ]    
         ```
         """
 
-        ai_prompt = f"""作为转录编辑，下面文字是根據基督教牧師講道的錄音轉錄的。請分段落，改正轉錄錯誤，並保持前後文連貫性。注意
+        ai_prompt = f"""作为转录编辑，下面文字是根據基督教牧師講道的錄音轉錄的。請使用繁体中文分段落，改正轉錄錯誤，並保持前後文連貫性。注意
         - 保留索引
         - 保留原意，不要改變講道的內容
-        - 段落儘量不要太短 
+        - 段落不要太短
         回答符合下面JSON格式：
         {json_format}
         前文上下文：{previous_text} 
         待修改內容：{current_text}                
         """
-#        client = Together()
-#        model="deepseek-ai/DeepSeek-R1",
-#        model = "qwen-qwq-32b"
 
-        # Initialize the client with the API key from the environment variable
-#        client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-        model="deepseek-r1"
-
-        client = OpenAI(
-            api_key=os.getenv("DASHSCOPE_API_KEY"),  # 如何获取API Key：https://help.aliyun.com/zh/model-studio/developer-reference/get-api-key
-            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
-        )
-
-
-        response = client.chat.completions.create(
-            model=model,
-            messages=[        
-                {
-                    "role": "user",
-                    "content": ai_prompt
-                }
-            ],
-#            max_tokens=10000,
-#            temperature=0.6,
-#            top_p=0.95,
-#            top_k=50,
-#            repetition_penalty=1,
-#            stop=["<｜end▁of▁sentence｜>"],
-#            stream=False
-
-        )
-        res = response.choices[0].message.content
+        res = call_llm('aliyun', ai_prompt)
         return self.markdown_to_json(res)
-        
-        
-    
+
+
     def find_closest_segment(self, segments:list, prev_seg:int, next_idx:int ):
         min_d = 100000
         min_i = -1
@@ -120,8 +83,8 @@ class ProcessorCorrectTranscription(Processor):
                 min_i = i
         return min_i
     
-    def create_corrected_paragraph(self, original_para:str, corrected_para:str, segments:list, ignore_last_para:bool = True):
-        corrected_para = corrected_para.replace('\n\n', '\n')
+    def create_corrected_paragraph(self, original_para:str, corrected_para:list, segments:list, ignore_last_para:bool = True):
+        corrected_para = '\n'.join(corrected_para)   
         if not ignore_last_para:
             corrected_para = corrected_para + '\n'
 
@@ -151,65 +114,76 @@ class ProcessorCorrectTranscription(Processor):
                 new_idx += len(ele[2:])
         return paragraphs
 
-    def format_paragraph(self, paragraph:str, is_end:bool = False):
-        paragraphs = paragraph.split('\n\n')
-        index = 0
-        if not is_end and len(paragraphs) > 1:
-            p = paragraphs[-1]
-            first_index1 = p.find('[')
-            first_index2 = p.find(']', first_index1+1)
-            index = int(p[first_index1+1:first_index2])            
-            return paragraphs[:-1] , index
-        else:
-            return paragraphs, index
 
-    
+    def remove_indexes(self, string:str):
+        # Find all patterns matching [number]
+        indexes = re.findall(r'\[\d+\]', string)
+        indexes = [int(i[1:-1]) for i in indexes]        
+        # Remove all indexes
+        result = re.sub(r'\[\d+\]', '', string)    
+        return indexes, result
+
+
+
+
+    def format_paragraphs(self, paragraphs:list):
+        formatted_paragraphs = [{'text':p } for p in paragraphs]
+        for p in formatted_paragraphs:
+            indexes, p['text'] = self.remove_indexes(p['text'])
+            p['index'] = indexes[0]
+            p['end_index'] = indexes[-1]
+        return formatted_paragraphs
+            
+
     def process(self, input_folder, item_name:str, output_folder:str, file_name:str = None, is_append:bool = False):
-        srt_file_name = os.path.join(input_folder, item_name + '.json')
-        output_file_name = os.path.join(output_folder, item_name + '.json')
+            srt_file_name = os.path.join(input_folder, item_name + '.json')
+            output_file_name = os.path.join(output_folder, item_name + '.json')
 
-        with open(srt_file_name, 'r') as fsc:
-            srt_data = json.load(fsc)
-        sorted_data = sorted(srt_data['entries'], key=lambda x: x['index'])
-        segments = []
-        curr_line = 0
-        para = ''
-        para_limit = 1000
-        prev_para = ''
-        paragraphs = []
-        index = 0
-        while index < len(sorted_data):
-            line = sorted_data[index]
-            para +=  f"[{line['index']}]{line['text']}" 
-            if len(para) < para_limit:
-                index += 1
-                continue
-            print('Processing index:', index)
-            corrected_para = self.correct_paragraph(prev_para, para)
-            prev_para = '\n\n'.join( [ f"{p['content']}" for p in corrected_para[-3:-1]] )
-            paragraphs.extend(corrected_para[:-1])
+            with open(srt_file_name, 'r') as fsc:
+                srt_data = json.load(fsc)
+            sorted_data = sorted(srt_data['entries'], key=lambda x: x['index'])
+            segments = []
+            curr_line = 0
             para = ''
-            index = corrected_para[-1]['start_index'] - 1
-        if para:
-            corrected_para = self.correct_paragraph(prev_para, para)
-            paragraphs.extend(corrected_para)
+            para_limit = 1000
+            prev_para = ''
+            paragraphs = []
+            index = 0
+            while index < len(sorted_data):
+                line = sorted_data[index]
+                para +=  f"[{line['index']}]{line['text']}" 
+                if len(para) < para_limit:
+                    index += 1
+                    continue
+                print('Processing index:', index)
+                corrected_para = self.correct_paragraph(prev_para, para)
+                formatted_para = self.format_paragraphs(corrected_para)
+                prev_para = '\n\n'.join( [ p for p in corrected_para[-3:-1]] )
+                paragraphs.extend(formatted_para[:-1])
+                para = ''
+                index = formatted_para[-1]['index'] - 1
+            if para:
+                corrected_para = self.correct_paragraph(prev_para, para)
+                formatted_para = self.format_paragraphs(corrected_para)
+                paragraphs.extend(formatted_para)
 
 
-        self.save(output_file_name, paragraphs)
-        return True
+            self.save(output_file_name, paragraphs)
+            return True
+
 
 
     def save(self, output_file_name, paragraphs):
-        for entry in paragraphs:
-            entry['index'] = entry.pop('start_index')
-            entry['text'] = entry.pop('content')        
 
         with open( output_file_name, 'w', encoding='UTF-8') as f:
             json.dump(paragraphs, f, indent=4, ensure_ascii=False)
         
 
+
+
+
 if __name__ == '__main__':
     base_folder = '/Volumes/Jun SSD/data'  
     processor = ProcessorCorrectTranscription()
-    processor.process(base_folder + '/' + 'script', 'S 200405 羅11 1-10 揀選2', base_folder + '/script_corrected')
+    processor.process(base_folder + '/' + 'script', 'S 200322 羅10 6-21 以色列人不信福音7', base_folder + '/script_corrected')
     pass

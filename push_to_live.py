@@ -53,7 +53,7 @@ def push(targe_base_dir:str):
         print("No changes to push")
 
 
-if __file__ == '__main__':
+if __name__ == '__main__':
     target = 'production'
 
     if target == 'test':
