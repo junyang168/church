@@ -15,10 +15,14 @@ def merge_ready_sermons(ready_sermons:dict, target_sermons:dict):
     changes = []
     for dev_sermon in ready_sermons:
         item = dev_sermon['item']
+        if item.startswith('2019-'):
+            continue
         target_sermon = next((s for s in target_sermons if s['item'] == item), None)
         if not target_sermon:
             changes.append(dev_sermon)
             target_sermons.append(dev_sermon)
+        elif  target_sermon['status'] == 'ready':
+            changes.append(dev_sermon)
     return changes
 
 def update_meta_file(base_dir:str, sermons:dict):
@@ -31,13 +35,13 @@ def copy_files(changes:dict, dev_base_dir:str, target_base_dir:str):
         item = dev_sermon['item']
         source_file = os.path.join(dev_base_dir,'script', item + '.json')
         target_file = os.path.join(target_base_dir,'script', item + '.json')
-        os.system(f"cp '{source_file}' '{target_file}'")
+        os.system(f"rsync -u '{source_file}' '{target_file}'")
 
         source_file = os.path.join(dev_base_dir,'script_patched', item + '.json')
         target_file = os.path.join(target_base_dir,'script_patched', item + '.json')
-        os.system(f"cp '{source_file}' '{target_file}'")
+        os.system(f"rsync -u '{source_file}' '{target_file}'")
         target_file = os.path.join(target_base_dir,'script_review', item + '.json')
-        os.system(f"cp '{source_file}' '{target_file}'")
+        os.system(f"rsync -u '{source_file}' '{target_file}'")
 
 def push(targe_base_dir:str):
     dev_sermons = load_meta(dev_base_dir)
@@ -47,7 +51,7 @@ def push(targe_base_dir:str):
     changes = merge_ready_sermons(ready_sermons, target_sermons)
     if changes:
         update_meta_file(targe_base_dir, target_sermons)
-        copy_files(ready_sermons, dev_base_dir, targe_base_dir)
+        copy_files(changes, dev_base_dir, targe_base_dir)
         print(f"Pushed {len(changes)} changes to {targe_base_dir}")
     else:
         print("No changes to push")

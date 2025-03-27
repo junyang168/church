@@ -62,7 +62,6 @@ class ProcessorCorrectTranscription(Processor):
         ai_prompt = f"""作为转录编辑，下面文字是根據基督教牧師講道的錄音轉錄的。請使用繁体中文分段落，改正轉錄錯誤，並保持前後文連貫性。注意
         - 保留索引
         - 保留原意，不要改變講道的內容
-        - 段落不要太短
         回答符合下面JSON格式：
         {json_format}
         前文上下文：{previous_text} 
@@ -149,19 +148,29 @@ class ProcessorCorrectTranscription(Processor):
             prev_para = ''
             paragraphs = []
             index = 0
+            prev_index = 0
             while index < len(sorted_data):
                 line = sorted_data[index]
                 para +=  f"[{line['index']}]{line['text']}" 
                 if len(para) < para_limit:
                     index += 1
                     continue
-                print('Processing index:', index)
+                print('Processing index:{} Prev idx:{}'.format(index, prev_index))
+                if prev_index == index:
+                    pass
+                prev_index = index
                 corrected_para = self.correct_paragraph(prev_para, para)
                 formatted_para = self.format_paragraphs(corrected_para)
-                prev_para = '\n\n'.join( [ p for p in corrected_para[-3:-1]] )
-                paragraphs.extend(formatted_para[:-1])
-                para = ''
-                index = formatted_para[-1]['index'] - 1
+                if len(formatted_para) > 1:
+                    para_limit = 1000
+                    prev_para = '\n\n'.join( [ p for p in corrected_para[-2:-1]] )
+                    paragraphs.extend(formatted_para[:-1])
+                    para = ''
+                    index = formatted_para[-1]['index'] - 1
+                else:
+                    index += 1
+                    para_limit += 100
+
             if para:
                 corrected_para = self.correct_paragraph(prev_para, para)
                 formatted_para = self.format_paragraphs(corrected_para)
@@ -185,5 +194,5 @@ class ProcessorCorrectTranscription(Processor):
 if __name__ == '__main__':
     base_folder = '/Volumes/Jun SSD/data'  
     processor = ProcessorCorrectTranscription()
-    processor.process(base_folder + '/' + 'script', 'S 200322 羅10 6-21 以色列人不信福音7', base_folder + '/script_corrected')
+    processor.process(base_folder + '/' + 'script', 'S 200322 羅10 6-21 以色列人不信福音7', base_folder + '/script_patched')
     pass
