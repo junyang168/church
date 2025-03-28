@@ -31,6 +31,9 @@ class ProcessorAudio(Processor):
             start += segment_duration
             i += 1
 
+    def accept_media_type(self):
+        return "audio"
+
 
     def setmetadata(self, items, metadata_file: str):       
         update_metadata(metadata_file, items, 'audio')

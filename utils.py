@@ -2,6 +2,7 @@ import glob
 import os
 import string
 
+
 def get_files(directory, extension = None):
     os.chdir(directory)
     extension = extension or ''
@@ -41,3 +42,15 @@ def clean_string(text):
     return ''.join([ch for ch in text if not is_whitespace_or_punctuation(ch)])
 
 
+import opencc
+
+def simplified_to_traditional(text):
+    """
+    Convert Simplified Chinese text to Traditional Chinese
+    """
+    # Initialize converter: 's2t' means Simplified to Traditional
+    converter = opencc.OpenCC('s2t')
+    
+    # Perform the conversion
+    converted_text = converter.convert(text)
+    return converted_text

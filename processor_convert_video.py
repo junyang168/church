@@ -41,6 +41,9 @@ class ProcessorConvertVideo(Processor):
     def setmetadata(self, items, metadata_file: str): 
         update_metadata(metadata_file, items, 'video')      
 
+    def accept_media_type(self):
+        return "video"
+
 
 if __name__ == "__main__":
     # Create an instance of ProcessorConvertVideo

@@ -23,8 +23,8 @@ class ProcessingPipeline:
         self.processors = [
 #                            ProcessorAudio(), 
 #                            ProcessorConvertVideo(),
-#                            ProcessorExtractAudio(),                            
-#                            ProcessorTranscribe(),
+                            ProcessorExtractAudio(),                            
+                            ProcessorTranscribe(),
                             ProcessorCorrectTranscription(),
                             ProcessorAddTitle()
                         ]
@@ -62,10 +62,12 @@ class ProcessingPipeline:
         with open(self.base_folder + '/config/sermon.json') as master_file:
             sermon_data = json.load(master_file)
         
-        for sermon in sermon_data:
-            for p in self.processors:
-                input_folder = self.input_folder if p.get_input_folder_name()[0] == '/' else self.base_folder + '/' + p.get_input_folder_name()
+        for p in self.processors:
+            input_folder = self.input_folder if p.get_input_folder_name()[0] == '/' else self.base_folder + '/' + p.get_input_folder_name()
+            for sermon in sermon_data:
                 item_name = sermon['item'] 
+                if p.accept_media_type() and sermon['type'] != p.accept_media_type():
+                    continue
                 status = self.get_cell_value(df, item_name, p.get_name())
                 
                 if  pd.isna(status) or status == 'In Progress':

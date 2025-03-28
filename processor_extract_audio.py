@@ -37,6 +37,10 @@ class ProcessorExtractAudio(Processor):
         video_clip.close()
         return True
     
+    def accept_media_type(self):
+        return "video"
+
+    
 if __name__ == '__main__':
     base_folder = '/Users/junyang/church/data'  
     processor = ProcessorExtractAudio()

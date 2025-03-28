@@ -11,7 +11,7 @@ def load_meta(base_dir:str) -> dict:
     with open(meta_file_name, 'r') as f:
         return json.load(f)
 
-def merge_ready_sermons(ready_sermons:dict, target_sermons:dict):
+def merge_ready_sermons(ready_sermons:list, target_sermons:list) -> list:
     changes = []
     for dev_sermon in ready_sermons:
         item = dev_sermon['item']
@@ -22,6 +22,8 @@ def merge_ready_sermons(ready_sermons:dict, target_sermons:dict):
             changes.append(dev_sermon)
             target_sermons.append(dev_sermon)
         elif  target_sermon['status'] == 'ready':
+            target_sermons.remove(target_sermon)  # Remove the existing sermon from target
+            target_sermons.append(dev_sermon)  # Add the new sermon from dev
             changes.append(dev_sermon)
     return changes
 

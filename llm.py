@@ -6,6 +6,30 @@ import math
 from together import Together
 from groq import Groq
 
+def markdown_to_json(markdown: str, is_json: bool = False) -> dict:
+    """Convert markdown-formatted JSON string to Python dictionary.
+    
+    Args:
+        markdown: String containing JSON wrapped in markdown code block
+        
+    Returns:
+        Parsed dictionary from JSON content
+    """
+    if is_json:
+        return json.loads(markdown)
+    
+    json_tag = "```json"
+    start_idx = markdown.find(json_tag)
+    if start_idx < 0:
+        raise ValueError("No JSON content found in markdown")
+    end_idx = markdown.find("```", start_idx + len(json_tag))
+    if end_idx == -1:
+        raise ValueError("No closing code block found in markdown")
+    json_str = markdown[start_idx + len(json_tag):end_idx].strip()
+    return json.loads(json_str)
+
+
+
 def call_llm(provider:str, ai_prompt:str):
     if provider == 'together':        
         client = Together()
@@ -37,4 +61,4 @@ def call_llm(provider:str, ai_prompt:str):
         ]
     )
     res = response.choices[0].message.content
-    return res
+    return markdown_to_json(res)

@@ -27,3 +27,6 @@ class Processor(ABC):
     def setmetadata(self, items:list, metadata_file:str):
         pass
 
+    def accept_media_type(self):
+        return None
+
