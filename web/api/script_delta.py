@@ -17,6 +17,9 @@ class ScriptDelta:
         self.base_folder = base_folder
         self.item_name = item_name
         self.timelineDictionary = self.loadTimeline()
+        self.bucket_name = os.getenv('AWS_S3_BUCKET_NAME') 
+        self.aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+        self.aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
 
 
 
@@ -241,6 +244,9 @@ class ScriptDelta:
         self.loadReviewScript()
         self.add_timeline(self.review)
         return self.review
+
+    def get_s3(self):
+        return boto3.client('s3', aws_access_key_id=self.aws_access_key_id, aws_secret_access_key=self.aws_secret_access_key)
 
     def get_final_script(self, is_published:bool=True, remove_tags:bool=True):
         if is_published:
