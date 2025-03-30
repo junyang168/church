@@ -22,16 +22,17 @@ import sermon_meta
 import mistune
 
 class Paragraph(BaseModel):
-    index: Optional[str] = None
+    index: Optional[Union[int, str]] = None
     text: str
     user_id: Optional[str] = None
     user_name: Optional[str] = None
     type: Optional[str] = None
     end_time: Optional[int] = None
     s_index: Optional[int] = None
-    start_index: Optional[str] = None
+    start_index: Optional[Union[int, str]] = None
     start_time: Optional[int] = None
     start_timeline: Optional[str] = None
+    end_index: Optional[Union[int, str]] = None
 
 class Slide(BaseModel):
     time:int

@@ -216,6 +216,8 @@ class ScriptDelta:
                     ent['user_id'] = p.user_id 
                 if p.index:
                     ent['index'] = p.index
+                if p.end_index:
+                    ent['end_index'] = p.end_index
                 data_dicts.append(ent)    
 
             json.dump(data_dicts, file, ensure_ascii=False, indent=4)    
