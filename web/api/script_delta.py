@@ -278,8 +278,16 @@ class ScriptDelta:
             },
             'script': published_script
         }
+        
         with open( self.base_folder +  '/script_published/' + self.item_name + '.json', 'w') as file1:
             json.dump(published, file1, ensure_ascii=False, indent=4)
+
+        s3 = self.get_s3()
+        sermon_data = json.dumps(published_script, ensure_ascii=False)
+        s3.put_object(Body=sermon_data, Bucket=self.bucket_name, Key='script_published/' + self.item_name + '.json', Metadata={'author': author, 'published_date': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')})
+
+
+
 
     def search(self, text_list:list[str]):
         published_script = self.get_final_script(True)
