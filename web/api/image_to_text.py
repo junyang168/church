@@ -15,10 +15,6 @@ class ImageToText:
         self.item_name = item_name
         item_name_mp4 = item_name + '.mp4'
         self.video_path = os.path.join(self.base_dir, 'video', item_name_mp4 )
-        screen_path = os.path.join(self.base_dir, 'screen', 'screen.json')
-        with open(screen_path) as f:
-            screens = json.load(f)
-            self.roi = screens[item_name_mp4]["bbox"]
 
 
     def extract_text_from_frame(self, frame):
