@@ -10,10 +10,13 @@ __pycache__/
 data/
 video/
 
+web/config.json
+web/data/
+web/video/
 .env
 
 # Virtual Environment
-venv/
+.venv/
 env/
 *.venv
 pip-selfcheck.json
