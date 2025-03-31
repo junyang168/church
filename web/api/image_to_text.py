@@ -6,7 +6,7 @@ from PIL import Image
 from google import genai
 from google.genai.types import HttpOptions, Part
 import json
-from screen_detector import get_screen_detector
+from screen_detector import screen_detector
 
 
 class ImageToText:
@@ -46,7 +46,8 @@ class ImageToText:
         success, frame = video.read()
         if not success:
             return None        
-        roi, _ = get_screen_detector().detect_screen(frame)
+#        roi, _ = screen_detector.detect_screen(frame)
+        roi = None
         if roi:
             roi_x, roi_y, roi_w, roi_h = self.roi
             roi_frame =  frame[roi_y:roi_y+roi_h, roi_x:roi_x+roi_w]

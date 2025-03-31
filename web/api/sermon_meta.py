@@ -88,7 +88,7 @@ class SermonMetaManager:
         with open(self.metadata_file_path) as f:
             sermon_meta = json.load(f)
 
-        sermon_dev = self.load_dev_sermon()
+#        sermon_dev = self.load_dev_sermon()
 #        self.merge_dev(sermon_meta, sermon_dev)
 
 

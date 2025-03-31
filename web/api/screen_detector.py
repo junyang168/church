@@ -149,16 +149,8 @@ class ScreenDetector:
         
         return None, confidence
 
-screen_detector = None
+screen_detector = ScreenDetector()
 
-def get_screen_detector():
-    """
-    Returns an instance of the ScreenDetector class.
-    This function is useful for initializing the detector in a separate module.
-    """
-    if screen_detector is None:
-        screen_detector = ScreenDetector()
-    return screen_detector
 
 # Example usage for a single frame
 if __name__ == "__main__":
