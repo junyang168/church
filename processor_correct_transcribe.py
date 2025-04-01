@@ -48,7 +48,7 @@ class ProcessorCorrectTranscription(Processor):
         前文上下文：{previous_text} 
         待修改內容：{current_text}                
         """
-        provider = 'aliyun'
+        provider = 'deepseek'
         #provider = 'together'
         res = call_llm(provider, ai_prompt)
         return res
@@ -191,5 +191,5 @@ if __name__ == '__main__':
     processor = ProcessorCorrectTranscription()
 
 
-    processor.process(base_folder + '/' + 'script', '191013', base_folder + '/script_patched')
+    processor.process(base_folder + '/' + 'script', 'S 200426', base_folder + '/script_patched')
     pass
