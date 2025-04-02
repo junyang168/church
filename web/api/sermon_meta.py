@@ -23,6 +23,7 @@ class Sermon(BaseModel):
     published_date: Optional[str] = None
     summary: Optional[str] = None
     type: Optional[str] = None
+    theme: Optional[str] = None
 
 class SermonMetaManager:
 
@@ -98,6 +99,7 @@ class SermonMetaManager:
                                assigned_to_date=m.get('assigned_to_date'),
                                status= m.get('status'), 
                                summary=m.get('summary'), 
+                               theme=m.get('theme'),
                                title=m.get('title') ,
                                deliver_date=m.get('deliver_date'),
                                type=m.get('type'),

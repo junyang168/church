@@ -30,21 +30,24 @@ def markdown_to_json(markdown: str, is_json: bool = False) -> dict:
 
 
 
-def call_llm(provider:str, ai_prompt:str):
+def call_llm(provider:str, ai_prompt:str,  model:str = None) -> dict:
     if provider == 'together':        
         client = Together()
-        model="deepseek-ai/DeepSeek-R1"
+        if model is None:
+            model="deepseek-ai/DeepSeek-R1"
     elif provider == 'groq':
         client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         model = "qwen-qwq-32b"
     elif provider == 'aliyun':
-        model="deepseek-r1"
+        if model is None:
+            model="deepseek-r1"
         client = OpenAI(
             api_key=os.getenv("DASHSCOPE_API_KEY"),  # 如何获取API Key：https://help.aliyun.com/zh/model-studio/developer-reference/get-api-key
             base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
         )
     elif provider == 'deepseek':
-        model='deepseek-reasoner'
+        if model is None:
+            model='deepseek-reasoner'
         client = OpenAI(
             api_key=os.getenv("DEEPSEEK_API_KEY"),  
             base_url="https://api.deepseek.com"

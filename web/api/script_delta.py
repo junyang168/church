@@ -256,6 +256,8 @@ class ScriptDelta:
             response = s3.get_object(Bucket=self.bucket_name, Key='script_published/' + self.item_name + '.json')
             sermon_data =  response['Body'].read().decode('utf-8')
             sermon_detail =  json.loads(sermon_data)
+            if isinstance(sermon_detail, dict):
+                sermon_detail = sermon_detail['script']
             metadata = response['Metadata']
         else:
             self.loadReviewScript()
