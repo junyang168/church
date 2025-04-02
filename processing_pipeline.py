@@ -15,6 +15,8 @@ from patch import ProcessorPatch
 from processor_audio import ProcessorAudio
 from processor_correct_transcribe import ProcessorCorrectTranscription
 from processor_add_title import ProcessorAddTitle
+from processor_summarize import ProcessorSummarize
+from processor_thumbnail import ProcessorGenerateThumbnail
 import json
 import datetime
 
@@ -23,10 +25,11 @@ class ProcessingPipeline:
         self.processors = [
 #                            ProcessorAudio(), 
 #                            ProcessorConvertVideo(),
-                            ProcessorExtractAudio(),                            
-                            ProcessorTranscribe(),
-                            ProcessorCorrectTranscription(),
-                            ProcessorAddTitle()
+#                            ProcessorExtractAudio(),                            
+#                            ProcessorTranscribe(),
+#                            ProcessorCorrectTranscription(),
+#                            ProcessorAddTitle()，
+                            ProcessorGenerateThumbnail()
                         ]
         self.base_folder = base_folder
         self.input_folder = input_folder

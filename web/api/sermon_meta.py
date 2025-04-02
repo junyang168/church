@@ -24,6 +24,7 @@ class Sermon(BaseModel):
     summary: Optional[str] = None
     type: Optional[str] = None
     theme: Optional[str] = None
+    thumbnail: Optional[str] = None
 
 class SermonMetaManager:
 
@@ -103,7 +104,8 @@ class SermonMetaManager:
                                title=m.get('title') ,
                                deliver_date=m.get('deliver_date'),
                                type=m.get('type'),
-                                 published_date=m.get('published_date')
+                                 published_date=m.get('published_date'),
+                                 thumbnail= '/web/data/thumbnail/' + m.get('item') + '.jpg',
                                  ) for m in sermon_meta]
         self.format_delivery_date()
 
