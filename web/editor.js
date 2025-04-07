@@ -881,7 +881,7 @@ async function sendMessage(message) {
             return
 
         addMessage('thinking...', 'bot-message');
-        
+
         url = `${api_prefix}chat/${context.user_id}`
         const response = await fetch(url, {
             method: 'POST',
@@ -895,7 +895,7 @@ async function sendMessage(message) {
 
         })
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            addMessage('Error: ' + response.statusText, 'bot-message');
         }
         bot_msg =  await response.json();
         addMessage(bot_msg, 'bot-message');
