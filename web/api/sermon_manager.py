@@ -13,6 +13,8 @@ from pydantic import BaseModel
 from sermon_meta import Sermon, SermonMetaManager
 from sermon_comment import SermonCommentManager
 from image_to_text import ImageToText
+from copilot import Copilot, ChatMessage
+from typing import List
 
 
 class Permission(BaseModel):
@@ -75,7 +77,7 @@ class SermonManager:
     def get_slide_text(self, user_id:str, item:str, timestamp:int):
         permissions = self.get_sermon_permissions(user_id, item)
         if not permissions.canWrite:
-            return "You don't have permission to read this item"
+            return {"message": "You don't have permission to update this item"}
         
         i2t = ImageToText(item)
         txt = i2t.extract_slide(timestamp)
@@ -247,6 +249,21 @@ class SermonManager:
         sd = ScriptDelta(self.base_folder, item)
         return sd.search(text_list)
 
+    def chat( self, user_id : str, item :str, history:List[ChatMessage], is_published=False ) -> str:
+        permissions = self.get_sermon_permissions(user_id, item)
+        if not permissions.canRead:
+            return  {"message": "You don't have permission to update this item"}
+        
+        sermon = self._sm.get_sermon_metadata(user_id, item)
+        if not sermon:
+            return  {"message": "sermon not found"}
+        
+        sd = ScriptDelta(self.base_folder, item)
+        script = sd.get_final_script(is_published)
+        article = sermon.title + '\n 简介：' + sermon.summary + '\n' + '\n'.join([ p['text'] for p in script['script'] ])
+        copilot = Copilot()
+        return copilot.chat(article, history)
+
 
 
 class ConfigFileEventHandler(FileSystemEventHandler):
@@ -263,10 +280,15 @@ class ConfigFileEventHandler(FileSystemEventHandler):
 
 
 
-
 sermonManager = SermonManager()
 
 if __name__ == '__main__':
+    
+    resp = sermonManager.chat('junyang168@gmail.com', '2019-2-15 心mp4', [  ChatMessage(role='user',content='總結主题') ])
+    print(resp)
+    pass
+    
+
     sermons = sermonManager.get_sermons('junyang168@gmail.com')
     print(sermons)
     msg = sermonManager.get_sermon_detail('junyang168@gmail.com', '2019-2-15 心mp4', 'changes')
