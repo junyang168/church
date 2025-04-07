@@ -188,3 +188,185 @@ main {
     background: #04AA6D; /* Green background */
     cursor: pointer; /* Cursor on hover */
 }
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f5f5f5;
+    padding: 10px 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+}
+
+.header-text {
+    font-size: 14px;
+}
+
+.header-right {
+    display: flex;
+    gap: 10px;
+}
+
+.google-signin, .icon-btn, .view-changes, .publish {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.google-signin {
+    background-color: #4285f4;
+    color: white;
+}
+
+.icon-btn {
+    background: none;
+    font-size: 18px;
+}
+
+.view-changes, .publish {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+}
+
+.container {
+    display: flex;
+    height: calc(100vh - 60px); /* Subtract header height */
+    gap: 20px;
+    padding: 20px;
+}
+
+.left-column, .right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.left-column {
+    flex: 1;
+}
+
+.right-column {
+    flex: 2;
+}
+
+.video-section {
+    width: 100%;
+    height: 300px;
+    background-color: #000;
+}
+
+video {
+    width: 100%;
+    height: 100%;
+}
+
+.text-area {
+    flex: 1;
+    border: 1px solid lightgray;
+    padding: 2px;
+    color: darkgray;
+    display: flex;
+    align-items: left;
+    justify-content: left;
+}
+
+.button-section {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.action-btn {
+    padding: 10px 20px;
+    margin-left: 10px;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.right-column .text-area:first-child {
+    height: 100px;
+}
+
+.right-column .text-area:last-child {
+    flex: 1;
+}
+
+#chat-input {
+    width: 100%;
+    align-items: left;
+    gap: 5px;
+}
+
+#chat-messages {
+    flex-grow: 1;
+    border: 1px solid #ddd;
+    padding: 10px;
+    overflow-y: auto;
+    height: 200px;
+    display: block;
+}
+
+.message {
+    margin: 10px 0;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.user-message {
+    color: white;
+    margin-left: 10%;
+    background-color: #007bff;
+}
+
+.bot-message {
+    margin-right: 10%;
+    background-color: white;
+    color: black;
+}
+
+.bot-message ol {
+    display: block;
+    list-style-type: decimal; /* Numbers: 1, 2, 3, etc. */
+    margin-top: 1em;
+    margin-bottom: 1em;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 10px; /* Indentation for the list items */
+}
+
+/* Define the animation */
+@keyframes blink {
+    0% { opacity: 1; } /* Text is fully visible */
+    50% { opacity: 0; } /* Text is half-transparent */
+    100% { opacity: 1; } /* Text is fully visible again */
+  }
+  
+  /* Apply the animation to the text */
+  .flashing-text {
+    animation: blink 1s infinite; /* Blink animation, 1 second duration, repeat forever */
+  }

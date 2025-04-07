@@ -4,9 +4,6 @@ var permissions = null;
 var user_id = null;
 var context = null;
 
-
-
-
 async function loadFile(user_id, type, item_name, ext) {
     try {
         url = `${api_prefix}load/${user_id}/${type}/${item_name}/${ext}`
@@ -719,7 +716,7 @@ function syncPlayerSlide(currentTime) {
 
 function timeChanged(e) {
     var currentTime = player.currentTime;
-    document.getElementById("demo").innerHTML = player.currentTime;
+    document.getElementById("status").innerHTML = player.currentTime;
     if (simplemde) {
         current_para = simplemde.element.data;
         if(current_para && current_para.type != 'comment') {
@@ -748,10 +745,6 @@ function timeChanged(e) {
     
     }
 }
-
-
-
-
 
 async function loadScript(user_id, item, with_changes) {
     try {
@@ -866,6 +859,74 @@ async function extract_slide_text() {
 
 }
 
+async function sendMessage(message) {
+    if (message) {
+        // Add user message
+        addMessage(message, 'user-message');
+        const chatInput = document.getElementById('chat-input');
+        chatInput.value = '';
+        
+        const chatMessages = document.getElementById('chat-messages');
+        var history = []
+        for (const msgNode of chatMessages.childNodes) {
+            var msg = null;
+            if (msgNode.classList && msgNode.classList.contains('user-message')) 
+                msg = {"role": "user", "content": msgNode.textContent}
+            else if (msgNode.classList && msgNode.classList.contains('bot-message'))
+                msg = {"role": "assistant", "content": msgNode.textContent}
+            if(msg)
+                history.push(msg)
+        }
+        if(history.length == 0) 
+            return
+
+        addMessage('thinking...', 'bot-message');
+        
+        url = `${api_prefix}chat/${context.user_id}`
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                item: context.item_name,
+                history: history
+            })
+
+        })
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        bot_msg =  await response.json();
+        addMessage(bot_msg, 'bot-message');
+    }    
+}
+
+
+function addMessage(text,  className) {
+    const chatMessages = document.getElementById('chat-messages');
+    if( className == 'bot-message' && text != 'thinking...') {
+        const flashingTextDiv = chatMessages.querySelector('.flashing-text');
+        if (flashingTextDiv) {
+            msgDiv = flashingTextDiv.parentNode;
+            msgDiv.parentNode.removeChild(msgDiv);
+        }
+    }
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', className);
+    var html = null
+    if(className == 'bot-message' && text == 'thinking...') {
+        html = "<div class='flashing-text'>"+text+"</div>"
+    }
+    else {
+        const converter = new showdown.Converter();
+        // Convert the Markdown text to HTML
+        html = converter.makeHtml(text);
+    }
+    messageDiv.innerHTML = html;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 
 async function wireup_buttons() {
     var view_changes_btn = document.getElementById('view_changes_btn');
@@ -899,16 +960,34 @@ async function wireup_buttons() {
     );
     if(!permissions || !permissions.canViewPublished) 
         view_finished_btn.style.display = 'none'
-
-     var extract_text_btn = document.getElementById('extract_text_btn');
-        extract_text_btn.addEventListener('click',async function() {
+    
+    var extract_text_btn = document.getElementById('extract_text_btn');
+    extract_text_btn.addEventListener('click',async function() {
             slide_text = await extract_slide_text();
-            var slideTextArea = document.getElementById('slide_text');
-            slideTextArea.value = slide_text;
-        }
+            addMessage('提取文字', 'user-message');
+            addMessage(slide_text, 'bot-message');
+        }        
     );  
 
+    var summarize_btn = document.getElementById('summarize_btn');
+    summarize_btn.addEventListener('click',async function() {
+            sendMessage('總結主题');
+        }
+    );
+
+
+    const chatInput = document.getElementById('chat-input');
+    // Handle sending messages
+    chatInput.addEventListener('keypress',async function(e) { 
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            sendMessage(message);
+        }
+    });    
+
 }
+
 
 async function onLoaded() {
     var user_id = await checkSignin()

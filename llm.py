@@ -21,7 +21,7 @@ def markdown_to_json(markdown: str, is_json: bool = False) -> dict:
     json_tag = "```json"
     start_idx = markdown.find(json_tag)
     if start_idx < 0:
-        raise ValueError("No JSON content found in markdown")
+        return markdown
     end_idx = markdown.find("```", start_idx + len(json_tag))
     if end_idx == -1:
         raise ValueError("No closing code block found in markdown")

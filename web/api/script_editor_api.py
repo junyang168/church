@@ -18,6 +18,7 @@ import sermon_manager as sm
 from script_delta import ScriptDelta
 from fastapi.responses import HTMLResponse
 import sermon_meta 
+from copilot import ChatMessage
 
 import mistune
 
@@ -52,6 +53,11 @@ class AssignRequest(BaseModel):
 class SearchRequest(BaseModel):
     item:str
     text_list:List[str]
+
+
+class ChatRequest(BaseModel):
+    item:str
+    history:List[ChatMessage]
 
 
 app = FastAPI()
@@ -174,6 +180,9 @@ def get_sermon_page(item):
 def search_script( req : SearchRequest):
     return sm.sermonManager.search_script(req.item, req.text_list)
     
+@app.post("/sc_api/chat/{user_id}")
+def search_script( user_id:str, req : ChatRequest):
+    return sm.sermonManager.chat(user_id, req.item, req.history)
 
 
 

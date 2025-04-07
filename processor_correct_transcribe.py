@@ -43,6 +43,7 @@ class ProcessorCorrectTranscription(Processor):
         ai_prompt = f"""作为转录编辑，下面文字是根據基督教牧師講道的錄音轉錄的。請使用繁体中文分段落，改正轉錄錯誤，並保持前後文連貫性。注意
         - 保留索引
         - 保留原意，不要改變講道的內容
+        - 每個段落不要超過 1000 字
         回答符合下面JSON格式：
         {json_format}
         前文上下文：{previous_text} 
@@ -56,7 +57,13 @@ class ProcessorCorrectTranscription(Processor):
 
     def remove_indexes(self, string:str):
         # Find all patterns matching [number]
-        matches = re.findall(r'\[(\d+)(?:-(\d+))?\]', string)
+        re1 = r'\[(\d+)(?:-(\d+))?\]'
+        re2 = r'\[(\d_\d+)(?:-(\d_\d+))?\]'
+        use_re2 = False 
+        matches = re.findall(re1, string)
+        if(len(matches) == 0):
+            matches = re.findall(re2, string)
+            use_re2 = True
         numbers = []
         for match in matches:
             start = int(match[0])
@@ -65,10 +72,11 @@ class ProcessorCorrectTranscription(Processor):
                 end = int(match[1])
                 numbers.append(end)             
         # Remove all indexes
-        result = re.sub(r'\[(\d+)(?:-(\d+))?\]', '', string)    
+        if use_re2:
+            result = re.sub(re2, '', string)    
+        else:
+            result = re.sub(re1, '', string)    
         return numbers, result
-
-
 
 
     def format_paragraphs(self, paragraphs:list):
@@ -86,7 +94,14 @@ class ProcessorCorrectTranscription(Processor):
 
             with open(srt_file_name, 'r') as fsc:
                 srt_data = json.load(fsc)
-            sorted_data = sorted(srt_data['entries'], key=lambda x: x['index'])
+            if isinstance(srt_data['entries'][0]['index'], str):
+                for i in range(len(srt_data['entries'])):
+                    srt_data['entries'][i]['index'] = i + 1
+                sorted_data = srt_data['entries']
+                with open(srt_file_name, 'w') as fsc:
+                    json.dump(srt_data, fsc, indent=4, ensure_ascii=False)
+            else:
+                sorted_data = sorted(srt_data['entries'], key=lambda x: x['index'])
 
             paragraphs = []
             if os.path.exists(output_file_name):
@@ -187,9 +202,54 @@ class ProcessorCorrectTranscription(Processor):
 
 
 if __name__ == '__main__':
+    '''
+    def change_timestamp_format(chunk, timestamp: str) -> str:
+        # Convert "00:00:00.000" to "00:00:00"
+        ts_secs =  timestamp.split(':')
+        min_secs = int(ts_secs[1])  + (int(chunk)-1) * 20
+        return f"{ts_secs[0]}:{min_secs:02}:{ts_secs[2]}"
+    
+    def convert_to_milliseconds(timestamp: str) -> int:
+        # Convert "00:00:00,000" to milliseconds
+        hours, minutes, seconds = timestamp.split(':')
+        sec, ms = str(seconds).split(',') 
+        return (int(hours) * 3600 + int(minutes) * 60 + int(sec)) * 1000 + int(ms)
+
+    base_folder = '/Volumes/Jun SSD/data'  
+    processor = ProcessorCorrectTranscription()
+    s1_file = base_folder + '/' + 'script/' + '2019-10-23 太13章1-53 耶穌為何用比喻？' +'.json'
+    base2 = '/opt/homebrew/var/www/church/web/data'
+    s2_file = base2 + '/' + 'script/' + '2019-10-23 太13章1-53 耶穌為何用比喻？' +'.json'
+    with open(s1_file, 'r') as fsc:
+        s1_data = json.load(fsc)
+    with open(s2_file, 'r') as fsc:
+        s2_data = json.load(fsc)
+    
+    for i in range(len(s1_data['entries'])):
+        orig_index = s2_data['entries'][i]['index'] 
+        chunk = orig_index.split('_')[0]
+        s1_data['entries'][i]['start'] = change_timestamp_format(chunk, s2_data['entries'][i]['start'])
+        s1_data['entries'][i]['end'] = change_timestamp_format(chunk, s2_data['entries'][i]['end'])
+        s1_data['entries'][i]['start_ms'] = convert_to_milliseconds( s1_data['entries'][i]['start'])
+        s1_data['entries'][i]['end_ms'] = convert_to_milliseconds( s1_data['entries'][i]['end'])
+
+    with open(s1_file, 'w') as fsc:
+        json.dump(s1_data, fsc, indent=4, ensure_ascii=False)
+    
+    exit()
+
     base_folder = '/Volumes/Jun SSD/data'  
     processor = ProcessorCorrectTranscription()
 
+    with open(base_folder + '/' + 'script_patched/' + '2019-10-23 太13章1-53 耶穌為何用比喻？' +'.json', 'r') as fsc:
+        s1_data = json.load(fsc)
+    for i in range(len(s1_data)):
+        s1_data[i]['text'] = s1_data[i]['text'].replace(' ', '')
+    with open(base_folder + '/' + 'script_patched/' + '2019-10-23 太13章1-53 耶穌為何用比喻？' +'.json', 'w') as fsc:
+        json.dump(s1_data, fsc, indent=4, ensure_ascii=False)
+    
+    exit()
+    '''
 
-    processor.process(base_folder + '/' + 'script', 'S 200426', base_folder + '/script_patched')
+    processor.process(base_folder + '/' + 'script', '2019-10-23 太13章1-53 耶穌為何用比喻？', base_folder + '/script_patched')
     pass
