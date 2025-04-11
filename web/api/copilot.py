@@ -30,12 +30,9 @@ class Copilot:
              }  
         ]
         for msg in history:
-            if msg.role == 'user':
-                messages.append({"role": "user", "content": msg.content})
-            elif msg.role == 'assistant':
-                messages.append({"role": "bot", "content": msg.content})
+            if msg.role in [ 'user','assistant' ]:
+                messages.append({"role": msg.role , "content": msg.content})
 
-        messages.extend(history)
         model='deepseek-chat'
         client = OpenAI(
                 api_key=os.getenv("DEEPSEEK_API_KEY"),  

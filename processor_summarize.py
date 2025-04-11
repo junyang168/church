@@ -83,7 +83,7 @@ class ProcessorSummarize(Processor):
 if __name__ == '__main__':
     base_folder = '/opt/homebrew/var/www/church/web/data'  
     meta_file_name = base_folder + '/config/' + 'sermon.json'
-    item_name = '2019-09-29 可4章10-12 耶穌恐怕人悔改嗎'
+    item_name = '191013'
     processor = ProcessorSummarize()
     processor.process(
         base_folder + '/' + processor.get_input_folder_name(), 

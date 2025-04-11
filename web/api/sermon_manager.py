@@ -260,7 +260,10 @@ class SermonManager:
         
         sd = ScriptDelta(self.base_folder, item)
         script = sd.get_final_script(is_published)
-        article = sermon.title + '\n 简介：' + sermon.summary + '\n' + '\n'.join([ p['text'] for p in script['script'] ])
+        article = sermon.title + '\n '
+        if sermon.summary: 
+            article +=  '簡介：' + sermon.summary + '\n'
+        article +=  '\n'.join([ p['text'] for p in script['script'] ])
         copilot = Copilot()
         return copilot.chat(article, history)
 
