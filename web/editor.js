@@ -664,12 +664,13 @@ async function loadData(context) {
     var item_name = context.item_name
     var view_changes = context.view_changes
 
-    const [slide_text, sermon, timeline_text ] = await Promise.all([ 
-            loadFile(user_id, 'slide' , item_name , 'json'),
+    const [/*slide_text, */ sermon, timeline_text ] = await Promise.all([ 
+//            loadFile(user_id, 'slide' , item_name , 'json'),
             loadScript(user_id , item_name , view_changes),
             loadFile(user_id,  'script' , item_name , 'json')
              ])
-    var slideData = JSON.parse(slide_text);
+//    var slideData = JSON.parse(slide_text);
+    slideData = []
     var timelineData = JSON.parse(timeline_text).entries;
     
     var timelineDictionary = {};
@@ -696,6 +697,7 @@ async function loadData(context) {
 
 
 function setSlideText(currentTime) {
+    return
     for(i = 0; i < scriptData.slides.length; i++) {
         slide = scriptData.slides[i]; 
         if ( currentTime > slide.time && currentTime < (i < scriptData.slides.length -1 ? scriptData.slides[i+1].time: 9999999999)) {
@@ -1021,7 +1023,7 @@ async function onLoaded() {
         player.src = 'video/' + scriptData.item + '.mp4';
     }
     player.ontimeupdate = function() {timeChanged()};
-
+/*
     var slideTextArea = document.getElementById('slide_text');
     slideTextArea.readOnly = !(permissions && permissions.canWrite);
 
@@ -1035,7 +1037,7 @@ async function onLoaded() {
         }
 
     }
-
+*/
     loadBookark();
 
     
