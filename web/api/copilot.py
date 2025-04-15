@@ -3,6 +3,7 @@ import os
 from openai import OpenAI
 from pydantic import BaseModel
 from typing import List
+from image_to_text import ImageToText
 
 class ChatMessage(BaseModel):
     role: str
@@ -20,29 +21,43 @@ class Copilot:
         else:
             return question
         
-    def chat(self, sermon:str, history: List[ChatMessage]) -> str:
-        history[-1].content = self.map_prompt( history[-1].content )
-        
-        messages = [
-            {
-                "role": "system", 
-                "content":self.system_prompt.format(context_str=sermon)
-             }  
-        ]
-        for msg in history:
-            if msg.role in [ 'user','assistant' ]:
-                messages.append({"role": msg.role , "content": msg.content})
+    def chat(self, item:str,  sermon:str, history: List[ChatMessage]) -> str:
+        question = history[-1].content
+        prefix = "提取文字 at "
+        if question.startswith(prefix):
+            i2t = ImageToText(item)
+            timestamp = int(question[len(prefix):])
+            res = i2t.extract_slide(timestamp)
+        else:
+            history[-1].content = self.map_prompt( question )
+            
+            messages = [
+                {
+                    "role": "system", 
+                    "content":self.system_prompt.format(context_str=sermon)
+                }  
+            ]
+            # Add the history messages ignoring text extraction
+            i = 0
+            while i < len(history):
+                msg = history[i]
+                if msg.role =='user' and msg.content.startswith(prefix) :
+                    i += 1
+                else:
+                    if msg.role in [ 'user','assistant' ]:
+                        messages.append({"role": msg.role , "content": msg.content})
+                i += 1
 
-        model='deepseek-chat'
-        client = OpenAI(
-                api_key=os.getenv("DEEPSEEK_API_KEY"),  
-                base_url="https://api.deepseek.com"
+            model='deepseek-chat'
+            client = OpenAI(
+                    api_key=os.getenv("DEEPSEEK_API_KEY"),  
+                    base_url="https://api.deepseek.com"
+                )
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages
             )
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages
-        )
-        res =  response.choices[0].message.content
+            res =  response.choices[0].message.content
         return  res 
 
 

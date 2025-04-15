@@ -965,9 +965,11 @@ async function wireup_buttons() {
     
     var extract_text_btn = document.getElementById('extract_text_btn');
     extract_text_btn.addEventListener('click',async function() {
-            slide_text = await extract_slide_text();
-            addMessage('提取文字', 'user-message');
-            addMessage(slide_text, 'bot-message');
+            var currentTimeMs = Math.round(player.currentTime * 1000);
+            sendMessage(`提取文字 at ${currentTimeMs}`);
+//            slide_text = await extract_slide_text();
+//            addMessage('提取文字', 'user-message');
+//            addMessage(slide_text, 'bot-message');
         }        
     );  
 
