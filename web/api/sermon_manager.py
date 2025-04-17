@@ -241,7 +241,7 @@ class SermonManager:
         sermon_data['metadata']['title'] = sermon.title if sermon.title else sermon.item
         sermon_data['metadata']['summary'] = sermon.summary
         if quote:
-            sermon_data['quotes'] = [p['index'] for p in sermon_data['script'] if quote in p['text']]
+            sermon_data['metadata']['quotes'] = [p['index'] for p in sermon_data['script'] if quote in p['text']]
         return sermon_data
     
     def get_sitemap(self):
