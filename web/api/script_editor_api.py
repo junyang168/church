@@ -142,8 +142,8 @@ def publish(user_id:str, item:str):
     return sm.sermonManager.publish(user_id, item)
 
 @app.get("/sc_api/final_sermon/{user_id}/{item}")
-def get_sermon(user_id:str, item: str, published:str = None, remove_tags:bool = True): 
-    return sm.sermonManager.get_final_sermon(user_id,item,published,remove_tags)
+def get_sermon(user_id:str, item: str, published:str = None, remove_tags:bool = True, quote:str = None):    
+    return sm.sermonManager.get_final_sermon(user_id,item,published,remove_tags, quote)
 
 
 from fastapi.staticfiles import StaticFiles
@@ -190,5 +190,5 @@ if __name__ == "__main__":
 
 #    save_to_s3(get_file_path('script_review', '2019-2-15 心mp4'), 'dallas-holy-logos', 'script_fixed/2019-2-15 心mp4.txt', 'junyang168@gmail.com')
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8008)
+    uvicorn.run(app, host="0.0.0.0", port=10008)
     pass

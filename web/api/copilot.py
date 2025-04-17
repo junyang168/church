@@ -47,7 +47,8 @@ class Copilot:
                     if msg.role in [ 'user','assistant' ]:
                         messages.append({"role": msg.role , "content": msg.content})
                 i += 1
-
+            
+#            return "**你是一个资深的基督教牧师。你现在要回答与下面讲道有关的问题. \n 1. 回答符合讲道的圣经观点\n2. 回答直接引用讲道的内容\n3. 遇到以下情况时明确说明：\n   - 资料未提及 → \"根据现有资料无法回答该问题\"\n   - 信息冲突 → \"不同资料中存在以下观点：...\"\n4. 禁止任何推测和编造\n\n讲道内容:开始对话："
             model='deepseek-chat'
             client = OpenAI(
                     api_key=os.getenv("DEEPSEEK_API_KEY"),  

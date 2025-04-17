@@ -202,7 +202,7 @@ class ProcessorCorrectTranscription(Processor):
 
 
 if __name__ == '__main__':
-    '''
+    
     def change_timestamp_format(chunk, timestamp: str) -> str:
         # Convert "00:00:00.000" to "00:00:00"
         ts_secs =  timestamp.split(':')
@@ -216,40 +216,45 @@ if __name__ == '__main__':
         return (int(hours) * 3600 + int(minutes) * 60 + int(sec)) * 1000 + int(ms)
 
     base_folder = '/Volumes/Jun SSD/data'  
-    processor = ProcessorCorrectTranscription()
-    s1_file = base_folder + '/' + 'script/' + '2019-10-23 太13章1-53 耶穌為何用比喻？' +'.json'
     base2 = '/opt/homebrew/var/www/church/web/data'
-    s2_file = base2 + '/' + 'script/' + '2019-10-23 太13章1-53 耶穌為何用比喻？' +'.json'
-    with open(s1_file, 'r') as fsc:
-        s1_data = json.load(fsc)
-    with open(s2_file, 'r') as fsc:
-        s2_data = json.load(fsc)
-    
-    for i in range(len(s1_data['entries'])):
-        orig_index = s2_data['entries'][i]['index'] 
-        chunk = orig_index.split('_')[0]
-        s1_data['entries'][i]['start'] = change_timestamp_format(chunk, s2_data['entries'][i]['start'])
-        s1_data['entries'][i]['end'] = change_timestamp_format(chunk, s2_data['entries'][i]['end'])
-        s1_data['entries'][i]['start_ms'] = convert_to_milliseconds( s1_data['entries'][i]['start'])
-        s1_data['entries'][i]['end_ms'] = convert_to_milliseconds( s1_data['entries'][i]['end'])
 
-    with open(s1_file, 'w') as fsc:
-        json.dump(s1_data, fsc, indent=4, ensure_ascii=False)
+    def convert_script_to_v2(item:str):
+        processor = ProcessorCorrectTranscription()
+        s1_file = base_folder + '/' + 'script/' + item +'.json'
+        s2_file = base2 + '/' + 'script/' + item +'.json'
+        with open(s1_file, 'r') as fsc:
+            s1_data = json.load(fsc)
+        with open(s2_file, 'r') as fsc:
+            s2_data = json.load(fsc)
+        
+        for i in range(len(s1_data['entries'])):
+            orig_index = s2_data['entries'][i]['index'] 
+            chunk = orig_index.split('_')[0]
+            s1_data['entries'][i]['start'] = change_timestamp_format(chunk, s2_data['entries'][i]['start'])
+            s1_data['entries'][i]['end'] = change_timestamp_format(chunk, s2_data['entries'][i]['end'])
+            s1_data['entries'][i]['start_ms'] = convert_to_milliseconds( s1_data['entries'][i]['start'])
+            s1_data['entries'][i]['end_ms'] = convert_to_milliseconds( s1_data['entries'][i]['end'])
+            s1_data['entries'][i]['index'] = i + 1
+
+        with open(s1_file, 'w') as fsc:
+            json.dump(s1_data, fsc, indent=4, ensure_ascii=False)
     
-    exit()
+    def convert_v1_script():
+        with open(base2 + '/config/sermon.json', 'r') as fsc:
+            sermon_data = json.load(fsc)
+        sermon_items = [s  for s in sermon_data if s['item'].startswith('2019-') and s['status'] == 'ready']
+        for sermon_item in sermon_items:
+            item = sermon_item['item']
+        convert_script_to_v2(item)
+
+ #   convert_v1_script()
 
     base_folder = '/Volumes/Jun SSD/data'  
     processor = ProcessorCorrectTranscription()
 
-    with open(base_folder + '/' + 'script_patched/' + '2019-10-23 太13章1-53 耶穌為何用比喻？' +'.json', 'r') as fsc:
-        s1_data = json.load(fsc)
-    for i in range(len(s1_data)):
-        s1_data[i]['text'] = s1_data[i]['text'].replace(' ', '')
-    with open(base_folder + '/' + 'script_patched/' + '2019-10-23 太13章1-53 耶穌為何用比喻？' +'.json', 'w') as fsc:
-        json.dump(s1_data, fsc, indent=4, ensure_ascii=False)
-    
-    exit()
-    '''
-
-    processor.process(base_folder + '/' + 'script', '2019-10-23 太13章1-53 耶穌為何用比喻？', base_folder + '/script_patched')
+    with open(base2 + '/config/sermon.json', 'r') as fsc:
+        sermon_data = json.load(fsc)
+    sermon_items = [ s['item']  for s in sermon_data if s['item'].startswith('2019-') and s['status'] == 'ready']
+    for sermon_item in sermon_items:
+        processor.process(base_folder + '/' + 'script', sermon_item, base_folder + '/script_patched')
     pass

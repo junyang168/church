@@ -229,7 +229,7 @@ class SermonManager:
         ScriptDelta(self.base_folder, item).publish(sermon.assigned_to)
         return {"message": "sermon has been published"}
     
-    def get_final_sermon(self, user_id:str, item:str, published:str, remove_tags:bool = True):
+    def get_final_sermon(self, user_id:str, item:str, published:str, remove_tags:bool = True, quote:str = None) -> dict:
         permissions = self.get_sermon_permissions(user_id, item)
         if not permissions.canRead:
             return  {"message": "You don't have permission to update this item"}
@@ -240,6 +240,8 @@ class SermonManager:
         sermon_data['metadata']['item'] = sermon.item
         sermon_data['metadata']['title'] = sermon.title if sermon.title else sermon.item
         sermon_data['metadata']['summary'] = sermon.summary
+        if quote:
+            sermon_data['quotes'] = [p['index'] for p in sermon_data['script'] if quote in p['text']]
         return sermon_data
     
     def get_sitemap(self):
