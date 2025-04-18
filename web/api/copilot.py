@@ -97,8 +97,8 @@ class Copilot:
                         messages.append({"role": msg.role , "content": msg.content})
                 i += 1
             
-            res = '<quotes>\n    <quote index=\'1\' source=\'/article?i=2019-05-19 喜乐\'>\n        <text>良心需以圣经真理为校准标准，而非单纯依赖主观感受</text>\n        <para_index>1_10-1_24</para_index>\n    </quote>\n    <quote index=\'2\' source=\'/article?i=2019-05-19 喜乐\'>\n        <text>基督徒行为的核心原则是"不叫人跌倒"</text>\n        <para_index>1_193-1_227</para_index>\n    </quote>\n    <quote index=\'3\' source=\'/article?i=2019-05-19 喜乐\'>\n        <text>良心的衡量标准需要与圣经真理校对方可靠</text>\n        <para_index>3_398-3_413</para_index>\n    </quote>\n</quotes>\n<answer>\n主题：基督徒良心的正确运用与圣经真理的关系\n\n1. 传统教会教导"凭良心平安行事"的观点与圣经真理相冲突，良心必须以圣经真理为校准标准，而非单纯依赖主观感受[1]。\n2. 基督徒行为的核心原则是"不叫人跌倒"，这体现在处理吃祭偶像之物等具体问题上需要根据圣经原则灵活应用[2]。\n3. 良心的作用包括衡量能力（神所赐）和衡量标准（受文化教育影响），必须通过深度解经使良心标准与圣经真理一致才能可靠运用[3]。\n</answer>'
-            return self.parse_response(res)
+#            res = '<quotes>\n    <quote index=\'1\' source=\'/article?i=2019-05-19 喜乐\'>\n        <text>良心需以圣经真理为校准标准，而非单纯依赖主观感受</text>\n        <para_index>1_10-1_24</para_index>\n    </quote>\n    <quote index=\'2\' source=\'/article?i=2019-05-19 喜乐\'>\n        <text>基督徒行为的核心原则是"不叫人跌倒"</text>\n        <para_index>1_193-1_227</para_index>\n    </quote>\n    <quote index=\'3\' source=\'/article?i=2019-05-19 喜乐\'>\n        <text>良心的衡量标准需要与圣经真理校对方可靠</text>\n        <para_index>3_398-3_413</para_index>\n    </quote>\n</quotes>\n<answer>\n主题：基督徒良心的正确运用与圣经真理的关系\n\n1. 传统教会教导"凭良心平安行事"的观点与圣经真理相冲突，良心必须以圣经真理为校准标准，而非单纯依赖主观感受[1]。\n2. 基督徒行为的核心原则是"不叫人跌倒"，这体现在处理吃祭偶像之物等具体问题上需要根据圣经原则灵活应用[2]。\n3. 良心的作用包括衡量能力（神所赐）和衡量标准（受文化教育影响），必须通过深度解经使良心标准与圣经真理一致才能可靠运用[3]。\n</answer>'
+#            return self.parse_response(res)
 
             model='deepseek-chat'
             client = OpenAI(
