@@ -864,7 +864,7 @@ async function extract_slide_text() {
 async function sendMessage(message) {
     if (message) {
         // Add user message
-        addMessage(message, 'user-message');
+        addMessage(message, null, 'user-message');
         const chatInput = document.getElementById('chat-input');
         chatInput.value = '';
         
@@ -882,7 +882,7 @@ async function sendMessage(message) {
         if(history.length == 0) 
             return
 
-        addMessage('thinking...', 'bot-message');
+        addMessage('thinking...', null, 'bot-message');
 
         url = `${api_prefix}chat/${context.user_id}`
         const response = await fetch(url, {
@@ -897,15 +897,17 @@ async function sendMessage(message) {
 
         })
         if (!response.ok) {
-            addMessage('Error: ' + response.statusText, 'bot-message');
+            addMessage('Error: ' + response.statusText, null, 'bot-message');
         }
         bot_msg =  await response.json();
-        addMessage(bot_msg, 'bot-message');
+
+        addMessage(bot_msg.answer, bot_msg.quotes, 'bot-message');
     }    
 }
 
 
-function addMessage(text,  className) {
+
+function addMessage(text, references,  className) {
     const chatMessages = document.getElementById('chat-messages');
     if( className == 'bot-message' && text != 'thinking...') {
         const flashingTextDiv = chatMessages.querySelector('.flashing-text');
@@ -927,8 +929,63 @@ function addMessage(text,  className) {
     }
     messageDiv.innerHTML = html;
     chatMessages.appendChild(messageDiv);
+    if(references) {
+        var ref_list = document.createElement('ol');
+        messageDiv.appendChild(ref_list);
+        for( ref of references) {
+            var li = document.createElement('li');
+            ref_list.appendChild(li);
+            var a = document.createElement('a');
+            a.innerText = ref.Title;
+            a.href = `${ref.Index}`;
+            a.classList.add('hover:underline');
+            a.target = '_blank';
+            a.rel="noopener noreferrer"; 
+            a.data = ref.Index;
+            a.addEventListener('click', function(e) {
+                e.preventDefault();                
+                highlightReferences(e.target.data);
+            })
+            li.appendChild(a);
+        }
+    }
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
+
+function highlightReferences(index) {
+    const idx = index.split('-')
+    const idx_start = idx[0]
+    const idx_end = idx.length > 1 ? idx[1] : idx[0]
+    var paras =  document.getElementsByClassName('paragraph')
+    var i = 0
+    while(paras[i].data.index != idx_start && i < paras.length) {
+        paras[i].classList.remove('bg-yellow-200');
+        i++;
+    }
+    var para_start = paras[i]
+
+    while(paras[i].data.index != idx_end && i < paras.length) {
+        paras[i].classList.add('bg-yellow-200');
+        i++;
+    }
+    if(i < paras.length && paras[i].data.index == idx_end) {
+        paras[i].classList.add('bg-yellow-200');
+        i++
+    }
+
+    while( i < paras.length) {
+        paras[i].classList.remove('bg-yellow-200');
+        i++;
+    }
+
+
+    if(para_start )
+        para_start.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+
+}
+
 
 async function wireup_buttons() {
     var view_changes_btn = document.getElementById('view_changes_btn');
@@ -977,6 +1034,20 @@ async function wireup_buttons() {
     summarize_btn.addEventListener('click',async function() {
             sendMessage('總結主题');
         }
+    );
+
+    var empty_chat_btn = document.getElementById('empty_chat_btn');
+    empty_chat_btn.addEventListener('click',async function() {
+        chatMessages = document.getElementById('chat-messages');
+        while (chatMessages.firstChild) {
+            chatMessages.removeChild(chatMessages.firstChild);
+        }
+        var paras =  document.getElementsByClassName('paragraph')
+        for( i = 0; i < paras.length; i++) {
+            paras[i].classList.remove('bg-yellow-200');
+        }        
+    
+    }
     );
 
 

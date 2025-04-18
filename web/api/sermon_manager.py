@@ -265,7 +265,7 @@ class SermonManager:
         article = sermon.title + '\n '
         if sermon.summary: 
             article +=  '簡介：' + sermon.summary + '\n'
-        article +=  '\n'.join([ p['text'] for p in script['script'] ])
+        article +=  '\n'.join([ f"[{p['index']}] {p['text']}" for p in script['script'] ])
         copilot = Copilot()
         return copilot.chat(item, article, history)
 
