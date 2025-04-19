@@ -32,18 +32,9 @@ class Copilot:
             return """总结下面牧师讲道的主要观点.回答以下格式例子：
         主题
         1. 观点 1
-        2. 观点 2"""
-        elif question.startswith("Get Quote:"):
-            return f"""
-        以下文字引用自以上讲道。请找出引用段落的索引：{question[len('Get Quote:'):]}
-        回答符合以下JSON 格式：
-        {{
-            "context": "講道中提到利未記17-18章記載神對以色列人的四項禁令：禁戒祭偶像的物、血、勒死的牲畜和不正常的性行為。這四件事是為了使以色列民與外邦人分別為聖。",
-            "index": "2_147-2_156"
-        }}                    
-        """
+        2. 观点 2""", "deepseek-reasoner"        
         else:
-            return question
+            return question, "deepseek-chat"
     
 
 
@@ -78,7 +69,7 @@ class Copilot:
             res = i2t.extract_slide(timestamp)
             return ChatResponse(quotes=[], answer=res)
         else:
-            history[-1].content = self.map_prompt( question )
+            history[-1].content, model = self.map_prompt( question )
             
             messages = [
                 {
@@ -100,7 +91,6 @@ class Copilot:
 #            res = '<quotes>\n    <quote index=\'1\' source=\'/article?i=2019-05-19 喜乐\'>\n        <text>良心需以圣经真理为校准标准，而非单纯依赖主观感受</text>\n        <para_index>1_10-1_24</para_index>\n    </quote>\n    <quote index=\'2\' source=\'/article?i=2019-05-19 喜乐\'>\n        <text>基督徒行为的核心原则是"不叫人跌倒"</text>\n        <para_index>1_193-1_227</para_index>\n    </quote>\n    <quote index=\'3\' source=\'/article?i=2019-05-19 喜乐\'>\n        <text>良心的衡量标准需要与圣经真理校对方可靠</text>\n        <para_index>3_398-3_413</para_index>\n    </quote>\n</quotes>\n<answer>\n主题：基督徒良心的正确运用与圣经真理的关系\n\n1. 传统教会教导"凭良心平安行事"的观点与圣经真理相冲突，良心必须以圣经真理为校准标准，而非单纯依赖主观感受[1]。\n2. 基督徒行为的核心原则是"不叫人跌倒"，这体现在处理吃祭偶像之物等具体问题上需要根据圣经原则灵活应用[2]。\n3. 良心的作用包括衡量能力（神所赐）和衡量标准（受文化教育影响），必须通过深度解经使良心标准与圣经真理一致才能可靠运用[3]。\n</answer>'
 #            return self.parse_response(res)
 
-            model='deepseek-chat'
             client = OpenAI(
                     api_key=os.getenv("DEEPSEEK_API_KEY"),  
                     base_url="https://api.deepseek.com"

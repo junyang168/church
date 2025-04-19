@@ -934,6 +934,8 @@ function addMessage(text, references,  className) {
         messageDiv.appendChild(ref_list);
         for( ref of references) {
             var li = document.createElement('li');
+            li.classList.add('text-sm');
+            li.classList.add('text-gray-500');            
             ref_list.appendChild(li);
             var a = document.createElement('a');
             a.innerText = ref.Title;
