@@ -13,8 +13,6 @@ class ChatMessage(BaseModel):
 from pydantic import BaseModel
 from typing import List,Optional
 
-
-
 class Reference(BaseModel):
     Id : str
     Title: Optional[str] = None
@@ -26,6 +24,13 @@ class ChatResponse(BaseModel):
     answer: Optional[str] = None
 
 
+class Document(BaseModel):
+    item: str
+    document_content: str
+    
+
+
+
 class Copilot:
     def map_prompt(self, question:str) -> str:
         if question == "總結主题":
@@ -34,7 +39,7 @@ class Copilot:
         1. 观点 1
         2. 观点 2""", "deepseek-reasoner"        
         else:
-            return question, "deepseek-chat"
+            return question, "deepseek-reasoner"
     
 
 
@@ -58,23 +63,40 @@ class Copilot:
         quotes = self.parse_quotes(quotes)
         answer_node = root.find('.//answer')
         return ChatResponse(quotes=quotes, answer=answer_node.text if answer_node is not None else None)
+    
+    def get_context(self, docs:List[Document]) -> str:
+        context_str = ""
+        for index, doc in enumerate(docs):
+            context_str += f"""<document index='{index+1}'>
+                <source>/article?i={doc.item}</source>
+                <document_content>{doc.document_content}</document_content>
+            </document>"""
+        return context_str
 
         
-    def chat(self, item:str,  sermon:str, history: List[ChatMessage]) -> str:
+    def chat(self, docs: List[Document] , history: List[ChatMessage]) -> str:
+#        quotes=[Reference(Id='1', Title='保羅教導吃祭偶像之物若叫人跌倒就不可吃，若不叫人跌倒就可吃，核心原則是「不叫人跌倒」[2_232]。', Link='/article?i=2019-2-18 良心', Index='2_232'), 
+#                Reference(Id='2', Title='聖經原則需根據處境應用，若活動涉及與鬼相交或違背真理，應禁戒[1_372]。', Link='/article?i=2019-2-18 良心', Index='1_372'), 
+#                Reference(Id='3', Title='使徒行傳15章禁止外邦信徒參與祭偶像之事，因會絆倒猶太人，強調行為須合乎真理與愛心[2_211]。', Link='/article?i=2019-2-18 良心', Index='2_211')] 
+#        answer='\n基督徒是否慶祝萬聖節需根據聖經原則審慎判斷。首先，若節日活動涉及與邪靈相關的儀式（如祭鬼），聖經明示不可參與（2）。其次，即使某些活動表面無害，若可能使軟弱的弟兄絆倒或誤解信仰，應出於愛心放棄自由（1）。此外，良心的標準需以聖經真理校對，而非僅憑主觀平安感（3）。因此，若慶祝方式包含違背真理的元素，或影響他人對信仰的認知，信徒應選擇禁戒，以榮耀神並造就人為優先[1][2][3]。'
+#        return ChatResponse(quotes=quotes, answer=answer)
+
         question = history[-1].content
         prefix = "提取文字 at "
         if question.startswith(prefix):
-            i2t = ImageToText(item)
+            i2t = ImageToText(docs[0].item)
             timestamp = int(question[len(prefix):])
             res = i2t.extract_slide(timestamp)
             return ChatResponse(quotes=[], answer=res)
         else:
             history[-1].content, model = self.map_prompt( question )
+
+            context_str = self.get_context(docs)
             
             messages = [
                 {
                     "role": "system", 
-                    "content":self.system_prompt.format(context_str=sermon)
+                    "content":self.system_prompt.format(context_str=context_str)
                 }  
             ]
             # Add the history messages ignoring text extraction
@@ -101,15 +123,17 @@ class Copilot:
             )
             res =  response.choices[0].message.content
         return  self.parse_response(res) 
+    
+        
 
 
     def __init__(self):
         self.system_prompt = """你是資深的基督教牧師。現在要回答與下面講道相關的問題。回答符合講道的聖經觀點。
-1. 下面提供了幾篇相關的講道。講道的每個段落前都有一個索引號碼。（例如[1]或[1_1])
+1. 下面提供了幾篇相關的講道。每篇講道以<document>標籤分隔。講道的內容放在<document><document_content>標籤中. 講道的每個段落前都有一個索引號碼。（例如[1]或[1_1])。講道的來源放在<document><source>標籤中. 講道的索引號碼放在<document>的index屬性中.
 2. 回答問題時，應將答案放在<answer></answer>標籤中。不要直接引用或逐字重複引文內容。回答時，不要說“根據Quote 1”。若答案中某部分與特定引文相關，在回答每個相關部分的句子末尾，僅透過添加帶括號的數字來引用相關的引文。（例如：這是一個示例句子[1]。）
 3. 從講道中找出與回答問題最相關的引文。將引文按編號順序放在<quotes></quotes> 的<text></text>標籤中，引文應相對簡短。講道文章source放在<quote>的<source>標籤中. 
 4. 引用段落的索引號碼應放在<quote>的<para_index>標籤中。索引號碼應該是講道的段落索引號碼，這些索引號碼應該與講道內容中的段落索引號碼相對應。
-4. The format of your overall response should look like what’s shown between the examples></examples> tags. Make sure to follow the formatting and spacing exactly. If the question cannot be answered by the document, say so.
+5. The format of your overall response should look like what’s shown between the examples></examples> tags. Make sure to follow the formatting and spacing exactly. If the question cannot be answered by the document, say so.
 <examples>
 	<quotes>
 		<quote index='1' source='http://localhost:8000/public/2019-05-19 喜乐'>
@@ -124,10 +148,7 @@ class Copilot:
 <answer>
 
 讲道内容:
-<document index="1">
-    <source>/article?i=2019-05-19 喜乐</source>
-    <document_content>{context_str}</document_content>
-</document>
+{context_str}
 
 
 请开始对话："""

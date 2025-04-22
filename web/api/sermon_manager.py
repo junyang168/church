@@ -13,8 +13,9 @@ from pydantic import BaseModel
 from sermon_meta import Sermon, SermonMetaManager
 from sermon_comment import SermonCommentManager
 from image_to_text import ImageToText
-from copilot import Copilot, ChatMessage
+from copilot import Copilot, ChatMessage, Document
 from typing import List
+import requests
 
 
 class Permission(BaseModel):
@@ -42,6 +43,7 @@ class SermonManager:
         self._acl = AccessControl(self.base_folder)
         self._sm = SermonMetaManager(self.base_folder, self._acl.get_user)
         self._scm = SermonCommentManager()
+        self.semantic_search_url = os.getenv('SEMANTIC_SEARCH_API_URL')
 
 
 
@@ -267,7 +269,37 @@ class SermonManager:
             article +=  '簡介：' + sermon.summary + '\n'
         article +=  '\n'.join([ f"[{p['index']}] {p['text']}" for p in script['script'] ])
         copilot = Copilot()
-        return copilot.chat(item, article, history)
+        docs = [Document(item=item, document_content=article)]
+        return copilot.chat(docs, history)
+
+
+    def get_relevant_items(self, question)->set:
+        url = f"{self.semantic_search_url}/semantic_search/{question}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            search_data = response.json()
+            content_items = set([ d['content_id'] for d in search_data ])
+            return content_items
+        else:
+            return set()
+
+
+    def qa(self, user_id:str, history:List[ChatMessage]):        
+        question = history[-1].content
+        relevant_items = self.get_relevant_items(question)
+
+        docs =[]
+        for index, item in enumerate(relevant_items):        
+            sd = ScriptDelta(self.base_folder, item)
+            script = sd.get_final_script()
+            sermon = self._sm.get_sermon_metadata(user_id, item)
+            article = sermon.title + '\n '
+            if sermon.summary: 
+                article +=  '簡介：' + sermon.summary + '\n'
+                article +=  '\n'.join([ f"[{p['index']}] {p['text']}" for p in script['script'] ])
+            docs.append(Document(item=item, document_content=article))
+        copilot = Copilot()
+        return copilot.chat(docs, history)
 
 
 

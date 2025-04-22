@@ -181,14 +181,21 @@ def search_script( req : SearchRequest):
     return sm.sermonManager.search_script(req.item, req.text_list)
     
 @app.post("/sc_api/chat/{user_id}")
-def search_script( user_id:str, req : ChatRequest):
+def chat( user_id:str, req : ChatRequest):
     return sm.sermonManager.chat(user_id, req.item, req.history)
 
+@app.post("/sc_api/qa/{user_id}")
+def qa( user_id:str, history:List[ChatMessage]):
+    return sm.sermonManager.qa(user_id, history)
 
 
 if __name__ == "__main__":
 
-#    save_to_s3(get_file_path('script_review', '2019-2-15 心mp4'), 'dallas-holy-logos', 'script_fixed/2019-2-15 心mp4.txt', 'junyang168@gmail.com')
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8008)
-    pass
+    exit(0)
+    history = [
+        ChatMessage(role='user', content='基督徒可以庆祝万圣节吗？'),
+    ]
+    res = qa('junyang168@gmail.com',history=history)
+    print(res)
