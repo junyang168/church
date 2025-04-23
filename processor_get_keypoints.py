@@ -46,6 +46,15 @@ class ProcessorGetKeypoints(Processor):
         sermon = next((item for item in metadata if item['item'] == item_name), None)
         title = sermon['title'] if sermon else ''
 
+        with open( output_folder+ '/' + 'keypoints.json' , 'r') as fsc:
+            keypoints = json.load(fsc)
+        item = next((item for item in keypoints if item['id'] == item_name), None)
+        if item and item.get('published_date','') == sermon['published_date']:
+            return True
+        if item:
+            keypoints.remove(item)
+
+
         file_name = input_folder + '/' + item_name + '.json'
 
         if not os.path.exists(file_name):
@@ -65,13 +74,8 @@ class ProcessorGetKeypoints(Processor):
 
         kps = self.get_keypoints(article)
 
-        kps =  { 'id': item_name, 'title': title, 'content': kps }
+        kps =  { 'id': item_name, 'title': title, 'content': kps, 'published_updated': sermon['published_date'] }
 
-        with open( output_folder+ '/' + 'keypoints.json' , 'r') as fsc:
-            keypoints = json.load(fsc)
-        item = next((item for item in keypoints if item['id'] == item_name), None)
-        if item:
-            keypoints.remove(item)
         keypoints.append(kps)
         with open( output_folder+ '/' + 'keypoints.json' , 'w') as fsc:
             json.dump(keypoints, fsc, indent=4, ensure_ascii=False)
@@ -104,15 +108,14 @@ if __name__ == '__main__':
     with open(meta_file_name, 'w') as fsc:
         json.dump(metadata, fsc, indent=4, ensure_ascii=False)
     exit()'
-    '''
     
     kps = processor.process(
         base_folder + '/' + 'script_review', 
         'S 200322 羅10 6-21 以色列人不信福音7',
         base_folder + '/' + processor.get_output_folder_name(), 
         meta_file_name = base_folder + '/config/' + 'sermon.json')
+    '''
 
-    keypoints = []
     for file in listdir:
         item_name = file.split('.')[0]
         print(item_name)
@@ -121,7 +124,4 @@ if __name__ == '__main__':
             item_name,
             base_folder + '/' + processor.get_output_folder_name(), 
             meta_file_name = base_folder + '/config/' + 'sermon.json')
-        keypoints.append(kps)
 
-    with open(base_folder + '/' + processor.get_output_folder_name() + '/' + 'keypoints.json', 'w') as fsc:
-        json.dump(keypoints, fsc, indent=4, ensure_ascii=False)

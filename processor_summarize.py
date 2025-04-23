@@ -50,6 +50,9 @@ class ProcessorSummarize(Processor):
         with open(meta_file_name, 'r') as fsc:
             metadata = json.load(fsc)
         sermon = next((item for item in metadata if item['item'] == item_name), None)
+        if sermon.get('summary'):
+            return True
+
         title = sermon['title'] if sermon else ''
 
         file_name = input_folder + '/' + item_name + '.json'
@@ -83,13 +86,17 @@ class ProcessorSummarize(Processor):
 if __name__ == '__main__':
     base_folder = '/opt/homebrew/var/www/church/web/data'  
     meta_file_name = base_folder + '/config/' + 'sermon.json'
-    item_name = '191013'
     processor = ProcessorSummarize()
-    processor.process(
-        base_folder + '/' + processor.get_input_folder_name(), 
-        item_name,
-        base_folder + '/' + processor.get_output_folder_name(), 
-        meta_file_name = base_folder + '/config/' + 'sermon.json')
+    listdir = os.listdir(base_folder + '/' + processor.get_input_folder_name())
+    for file in listdir:
+        item_name = file.split('.')[0]
+        processor.process(
+            base_folder + '/' + processor.get_input_folder_name(), 
+            item_name,
+            base_folder + '/' + processor.get_output_folder_name(), 
+            meta_file_name = base_folder + '/config/' + 'sermon.json')
+    exit()
+
 
 
     listdir = os.listdir(base_folder + '/' + processor.get_input_folder_name())
