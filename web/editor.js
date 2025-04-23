@@ -1016,7 +1016,7 @@ async function wireup_buttons() {
 
     var view_finished_btn = document.getElementById('view_finished_btn');
     view_finished_btn.addEventListener('click', function() {
-        window.open(`/public/${context.item_name}`, '_blank');
+        window.open(`/article?i=${context.item_name}`, '_blank');
     }
     );
     if(!permissions || !permissions.canViewPublished) 
