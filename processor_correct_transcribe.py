@@ -40,7 +40,7 @@ class ProcessorCorrectTranscription(Processor):
         ```
         """
 
-        ai_prompt = f"""作为转录编辑，下面文字是根據基督教牧師講道的錄音轉錄的。請使用繁体中文分段落，改正轉錄錯誤，並保持前後文連貫性。注意
+        ai_prompt = f"""作为转录编辑，下面文字是根據基督教牧師講道的錄音轉錄的。請使用繁体中文分段落，加標點，改正轉錄錯誤，並保持前後文連貫性。注意
         - 保留索引
         - 保留原意，不要改變講道的內容
         - 每個段落不要超過 1000 字
@@ -249,12 +249,15 @@ if __name__ == '__main__':
 
  #   convert_v1_script()
 
+if __name__ == '__main__':
     base_folder = '/Volumes/Jun SSD/data'  
     processor = ProcessorCorrectTranscription()
-
+    '''
     with open(base2 + '/config/sermon.json', 'r') as fsc:
         sermon_data = json.load(fsc)
     sermon_items = [ s['item']  for s in sermon_data if s['item'].startswith('2019-') and s['status'] == 'ready']
     for sermon_item in sermon_items:
         processor.process(base_folder + '/' + 'script', sermon_item, base_folder + '/script_patched')
     pass
+    '''
+    processor.process(base_folder + '/' + 'script', '011WSR01', base_folder + '/script_patched')

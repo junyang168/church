@@ -16,7 +16,7 @@ class ProcessorSummarize(Processor):
         return "Title"
 
     def get_input_folder_name(self):
-        return "script_published"
+        return "script_review"
 
     def get_output_folder_name(self):
         return "script_summarized"
@@ -30,13 +30,18 @@ class ProcessorSummarize(Processor):
         json_format = """
         ```json
         {
+            "title":"空坟墓",
             "theme": "耶稣的空坟墓",
             "content": "通过分析历史文献和圣经记载，强调耶稣的空坟墓是复活的关键证据。指出犹太传说与福音书记载的一致性，以及罗马兵丁的证词矛盾，反驳了门徒偷尸体的说法，论证了复活的历史真实性。"
         }
         ```
         """
 
-        ai_prompt = f"""请为以下牧师讲道写一个简洁的摘要。摘要先点出主题，再加核心内容。简介不要超过 100 字。回答符合以下JSON格式:
+        ai_prompt = f"""请給下面基督教牧師的講道加標題,然後写一个简洁的摘要。
+        1. 標題要简洁
+        2. 摘要先点出主题，再加核心内容。简介不要超过 100 字。
+        3. 使用繁體中文
+        回答符合以下JSON格式:
         {json_format}
         牧师讲道内容：{article}
         """              
@@ -86,7 +91,18 @@ class ProcessorSummarize(Processor):
 if __name__ == '__main__':
     base_folder = '/opt/homebrew/var/www/church/web/data'  
     meta_file_name = base_folder + '/config/' + 'sermon.json'
+    item_name = '011WSR01'
     processor = ProcessorSummarize()
+    processor.process(
+        base_folder + '/' + processor.get_input_folder_name(), 
+        item_name,
+        base_folder + '/' + processor.get_output_folder_name(), 
+            meta_file_name = base_folder + '/config/' + 'sermon.json')
+
+    exit()
+
+
+
     listdir = os.listdir(base_folder + '/' + processor.get_input_folder_name())
     for file in listdir:
         item_name = file.split('.')[0]

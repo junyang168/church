@@ -17,6 +17,7 @@ from processor_correct_transcribe import ProcessorCorrectTranscription
 from processor_add_title import ProcessorAddTitle
 from processor_summarize import ProcessorSummarize
 from processor_thumbnail import ProcessorGenerateThumbnail
+from processor_get_keypoints import ProcessorGetKeypoints
 import json
 import datetime
 
@@ -26,10 +27,11 @@ class ProcessingPipeline:
 #                            ProcessorAudio(), 
 #                            ProcessorConvertVideo(),
 #                            ProcessorExtractAudio(),                            
-#                            ProcessorTranscribe(),
-#                            ProcessorCorrectTranscription(),
-#                            ProcessorAddTitle()，
-                            ProcessorGenerateThumbnail()
+                            ProcessorTranscribe(),
+                            ProcessorCorrectTranscription(),
+                            ProcessorAddTitle()
+#                            ProcessorGenerateThumbnail()
+#                            ProcessorGetKeypoints(),
                         ]
         self.base_folder = base_folder
         self.input_folder = input_folder
@@ -85,9 +87,13 @@ class ProcessingPipeline:
             if p.get_name() == 'Title': 
                 status = self.get_cell_value(df, sermon['item'], 'Title')
                 if status == 'Completed' :
-                    sermon['status'] = 'ready'
-                    with open(self.base_folder + '/config/sermon.json', 'w', encoding='UTF-8') as json_file:  
-                        json.dump(sermon_data, json_file, indent=4, ensure_ascii=False)
+                    with open(self.base_folder + '/config/sermon.json') as master_file:
+                        sermons = json.load(master_file)
+                    sm = next((sermon for sermon in sermons if item_name == sermon['item']), None)
+                    if sm['status'] == 'in development':
+                        sm['status'] = 'ready'
+                        with open(self.base_folder + '/config/sermon.json', 'w', encoding='UTF-8') as json_file:  
+                            json.dump(sermons, json_file, indent=4, ensure_ascii=False)
 
 
 
