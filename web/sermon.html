@@ -17,9 +17,9 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" integrity="sha512-UtLOu9C7NuThQhuXXrGwx9Jb/z9zPQJctuAgNUBK3Z6kkSYT9wJ+2+dh6klS+TDBCV9kNPBbAxbVD+vCcfGPaA==" crossorigin="anonymous" referrerpolicy="no-referrer" />            
         <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>        
         <link rel="stylesheet" href="styles.css?v=0426">
-        <script src="config.js?v=0504"></script>
-        <script src="signin.js?v=0504"></script>   
-        <script src="editor.js?v=0504"></script>
+        <script src="config.js?v=0505"></script>
+        <script src="signin.js?v=0505"></script>   
+        <script src="editor.js?v=0505"></script>
     </head>
     <body>
         <header class="px-3 py-1 md:px-3 md:py-1 flex md:grid md:grid-cols-6 h-[48px] md:h-[48px] border-b bg-white">
@@ -43,8 +43,8 @@
         </header>
     
         <div class="flex md:flex md:flex-grow flex-row justify-end space-x-1 p-1">
-            <div class="inline-flex rounded-md shadow-sm" role="group">
-                    <button type="button" id="home_btn" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white">
+            <div class="inline-flex rounded-md shadow-sm" role="group" id="btn_group">
+                <button type="button" id="home_btn" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white">
                     <i class="fa-solid fa-house w-3 h-3 me-2"></i>
                     返回
                 </button>

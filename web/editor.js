@@ -990,12 +990,12 @@ function highlightReferences(index) {
 
 
 async function wireup_buttons() {
-    var home_btn = document.getElementById('home_btn');
+    var btn_group = document.getElementById('btn_group');
     var urlParams = new URLSearchParams(window.location.search);
     temp_key =  urlParams.get('key');
 
     if(temp_key && temp_key == '987986786876874287') {
-        home_btn.style.display = 'none';
+        btn_group.style.display = 'none';
     }
 
 
