@@ -96,17 +96,18 @@ class SermonMetaManager:
 
         
         self.sermons = [Sermon( item=m.get('item'),
-                               assigned_to= m.get('assigned_to'), 
-                               assigned_to_date=m.get('assigned_to_date'),
-                               status= m.get('status'), 
-                               summary=m.get('summary'), 
-                               theme=m.get('theme'),
-                               title=m.get('title') ,
-                               deliver_date=m.get('deliver_date'),
-                               type=m.get('type'),
-                                 published_date=m.get('published_date'),
-                                 thumbnail= '/web/data/thumbnail/' + m.get('item') + '.jpg',
-                                 ) for m in sermon_meta]
+                                       assigned_to= m.get('assigned_to'), 
+                                       assigned_to_date=m.get('assigned_to_date'),
+                                       status= m.get('status'), 
+                                       summary=m.get('summary'), 
+                                       theme=m.get('theme'),
+                                       title=m.get('title') ,
+                                       deliver_date=m.get('deliver_date'),
+                                       last_updated= m.get('last_updated') if m.get('last_updated') else '2025-03-01 17:33',
+                                       type=m.get('type'),
+                                       published_date=m.get('published_date'),
+                                       thumbnail= '/web/data/thumbnail/' + m.get('item') + '.jpg',
+                                       ) for m in sermon_meta]
         self.format_delivery_date()
 
         for s in self.sermons:
