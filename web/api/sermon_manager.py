@@ -291,9 +291,10 @@ class SermonManager:
         relevant_items = self.get_relevant_items(question)
 
         docs =[]
-        for index, item in enumerate(relevant_items):        
+        for index, item in enumerate(relevant_items):
+            meta = self._sm.get_sermon_metadata(user_id, item)        
             sd = ScriptDelta(self.base_folder, item)
-            script = sd.get_final_script()
+            script = sd.get_final_script(meta.status == 'published')
             sermon = self._sm.get_sermon_metadata(user_id, item)
             article = sermon.title + '\n '
             if sermon.summary: 
