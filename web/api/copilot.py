@@ -149,7 +149,7 @@ class Copilot:
         user_message = messages[-1]
         messages = messages[1:-1]  # Exclude the last user message
         historyontent = [ { 'role':  message['role'] if message['role'] == 'user' else 'model', 'parts': [{'text':message['content']}]} for message in messages]
-        client = genai.Client()
+        client = genai.Client() if env_file is None else genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
         chat = client.chats.create(model=model,history=historyontent)
         resp =  chat.send_message(user_message['content'],config=config)
         return resp.text
