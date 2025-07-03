@@ -42,7 +42,7 @@ class ProcessorExtractAudio(Processor):
 
     
 if __name__ == '__main__':
-    base_folder = '/Users/junyang/church/data'  
+    base_folder = '/Volumes/Jun SSD/data'  
     processor = ProcessorExtractAudio()
-    processor.process(base_folder + '/' + 'video', '2019-07-28 罗马书六章1节', base_folder + '/audio')
+    processor.process(base_folder + '/' + 'video', '2022年 NYSC 專題 馬太福音釋經（九）王守仁 教授  第二堂', base_folder + '/audio')
     pass

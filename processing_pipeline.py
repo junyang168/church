@@ -26,7 +26,7 @@ class ProcessingPipeline:
         self.processors = [
 #                            ProcessorAudio(), 
 #                            ProcessorConvertVideo(),
-#                            ProcessorExtractAudio(),                            
+                            ProcessorExtractAudio(),                            
                             ProcessorTranscribe(),
                             ProcessorCorrectTranscription(),
                             ProcessorAddTitle()

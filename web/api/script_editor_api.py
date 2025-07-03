@@ -191,11 +191,11 @@ def qa( user_id:str, history:List[ChatMessage]):
 
 if __name__ == "__main__":
 
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8008)
-    exit(0)
+#    import uvicorn
+#    uvicorn.run(app, host="0.0.0.0", port=8008)
+#    exit(0)
     history = [
-        ChatMessage(role='user', content='基督徒可以庆祝万圣节吗？'),
+        ChatMessage(role='user', content='路加福音耶穌家譜有無跳代？怎麼看出來的？'),
     ]
     res = qa('junyang168@gmail.com',history=history)
     print(res)

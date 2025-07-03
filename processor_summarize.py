@@ -45,8 +45,9 @@ class ProcessorSummarize(Processor):
         {json_format}
         牧师讲道内容：{article}
         """              
+        provider = os.getenv("PROVIDER")
 
-        summary =  call_llm('deepseek', ai_prompt, model='deepseek-chat')
+        summary =  call_llm(provider, ai_prompt)
         return summary
         
 

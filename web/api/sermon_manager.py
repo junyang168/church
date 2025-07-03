@@ -326,7 +326,7 @@ if __name__ == '__main__':
     
     resp = sermonManager.chat('junyang168@gmail.com', '2019-2-15 心mp4', [  ChatMessage(role='user',content='總結主题') ])
     print(resp)
-    pass
+    exit(0)
     
 
     sermons = sermonManager.get_sermons('junyang168@gmail.com')

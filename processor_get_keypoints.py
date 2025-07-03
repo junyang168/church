@@ -9,9 +9,13 @@ from openai import OpenAI
 from metadata import update_metadata_item_title
 from llm import call_llm
 import re
+import requests
 
 
-class ProcessorGetKeypoints(Processor):
+
+
+
+class ProcessorGetKeypoints:
     def get_name(self):
         return "Keypoints"
 
@@ -27,101 +31,94 @@ class ProcessorGetKeypoints(Processor):
 
 
     def get_keypoints(self, article: str):
+        json_format = """
+        ```json
+        [
+            {
+                "keypoint": "觀點 1",
+                "related_bible_verse": [
+                    {
+                        "book": "羅馬書",
+                        "chapter_verse": "1:1-3",
+                        "content": "論到他兒子─我主耶穌基督。按肉體說，是從大衛後裔生的"
+                    }
+                ] 
+            }
+        ]
+        ```
+        """
 
-        ai_prompt = f"""总结下面牧师讲道的主要观点.回答以下格式例子：
-        主题
-        1. 观点 1
-        2. 观点 2
-        牧师讲道内容：{article}
+        ai_prompt = f"""你是一位資深基督教牧師。請总结下面牧师讲道主要观点(keypoint)及和每个观点相关的最重要的圣经章节(related_bible_verse). 注意：
+        1. 每个观点返回最多两个相关圣经章节。
+        2。回答繁體中文。 
+        3. 回答符合以下JSON格式:
+        {json_format}
+        牧師講道內容：{article}
         """              
+        provider = os.getenv("PROVIDER")
 
-        kp =  call_llm('deepseek', ai_prompt, model='deepseek-chat')
+        kp =  call_llm(provider, ai_prompt)
         return kp
         
 
     
-    def process(self, input_folder, item_name:str, output_folder:str, meta_file_name:str = 'sermon.json', is_append:bool = False):
-        with open(meta_file_name, 'r') as fsc:
-            metadata = json.load(fsc)
-        sermon = next((item for item in metadata if item['item'] == item_name), None)
-        title = sermon['title'] if sermon else ''
+    def process(self, sermon_meta, script):
 
-        with open( output_folder+ '/' + 'keypoints.json' , 'r') as fsc:
-            keypoints = json.load(fsc)
-        item = next((item for item in keypoints if item['id'] == item_name), None)
-        if item and item.get('published_date','') == sermon['published_date']:
-            return True
-        if item:
-            keypoints.remove(item)
+        paragraphs = script['script']
 
+        theme = sermon_meta['theme'] if sermon_meta['theme'] else sermon_meta['title']
 
-        file_name = input_folder + '/' + item_name + '.json'
-
-        if not os.path.exists(file_name):
-            print(f"File {file_name} does not exist.")
-            return False
-        
-        
-        with open(file_name, 'r') as fsc:
-            data = json.load(fsc)
-
-        if  isinstance(data, dict):
-            paragraphs = data['script']
-        else:
-            paragraphs =  data
-
-        article = title + '\n\n' + '\n\n'.join( [ p['text'] for p in paragraphs ] )
+        article = theme + '\n\n' + '\n\n'.join( [ p['text'] for p in paragraphs ] )
 
         kps = self.get_keypoints(article)
 
-        kps =  { 'id': item_name, 'title': title, 'content': kps, 'published_updated': sermon['published_date'] }
+        kps =  { 'id': item_name, 'title': sermon_meta['title'], 'them': theme, 'kps': kps, 'published_updated': script['metadata']['last_updated'] }
 
-        keypoints.append(kps)
-        with open( output_folder+ '/' + 'keypoints.json' , 'w') as fsc:
-            json.dump(keypoints, fsc, indent=4, ensure_ascii=False)
-        return True
+        return kps
+        
 
 
 if __name__ == '__main__':
     base_folder = '/opt/homebrew/var/www/church/web/data'  
     meta_file_name = base_folder + '/config/' + 'sermon.json'
     processor = ProcessorGetKeypoints()
-    listdir = os.listdir(base_folder + '/' + processor.get_input_folder_name())
     with open(meta_file_name, 'r') as fsc:
         metadata = json.load(fsc)
-    '''
-    for file in listdir:
-        item_name = file.split('.')[0]
-        with open(base_folder + '/' + processor.get_input_folder_name() + '/' + file, 'r') as fsc:
-            surmon = json.load(fsc)
-        sermon_meta = next((item for item in metadata if item['item'] == item_name), None)
-        with open(base_folder + '/' + processor.get_output_folder_name() + '/' + item_name + '.json', 'r') as fsc:
-            summary = json.load(fsc)
-        sermon_meta['theme'] = summary['theme']
-        sermon_meta['summary'] = summary['content']
-        if not isinstance(surmon, dict):
-            surmon = { 'script': surmon, 'metadata': sermon_meta}
-        else:
-            surmon['metadata'] = sermon_meta
-        with open(base_folder + '/' + processor.get_input_folder_name() + '/' + file, 'w') as fsc:
-            json.dump(surmon, fsc, indent=4, ensure_ascii=False)
-    with open(meta_file_name, 'w') as fsc:
-        json.dump(metadata, fsc, indent=4, ensure_ascii=False)
-    exit()'
     
-    kps = processor.process(
-        base_folder + '/' + 'script_review', 
-        'S 200322 羅10 6-21 以色列人不信福音7',
-        base_folder + '/' + processor.get_output_folder_name(), 
-        meta_file_name = base_folder + '/config/' + 'sermon.json')
-    '''
+    kpfile = base_folder + '/' + processor.get_output_folder_name() + '/keypoints.json'
+    with open(kpfile, 'r') as fsc:
+        keypoints = json.load(fsc)
 
-    for file in listdir:
-        item_name = file.split('.')[0]
+    user_id = 'junyang168@gmail.com'
+
+    url = "http://127.0.0.1:8000/sc_api/final_sermon/junyang168@gmail.com/" 
+
+    for sermon in metadata:
+        item_name = sermon['item']
+        if sermon['status'] == 'in development':
+            continue
+
         print(item_name)
-        kps = processor.process(
-            base_folder + '/' + processor.get_input_folder_name(), 
-            item_name,
-            base_folder + '/' + processor.get_output_folder_name(), 
-            meta_file_name = base_folder + '/config/' + 'sermon.json')
+
+        kp_item = next((item for item in keypoints if item['id'] == item_name), None)
+
+        response = requests.get(url + item_name)
+        sermon_detail = response.json()
+
+        if kp_item and kp_item.get('published_updated','') == sermon_detail['metadata']['last_updated']:
+                continue
+
+        if kp_item:
+            keypoints.remove(kp_item)
+
+
+        kp = processor.process(
+            sermon,
+            sermon_detail)
+        keypoints.append(kp)
+
+        with open(kpfile, 'w') as fsc:
+            json.dump(keypoints, fsc, indent=4, ensure_ascii=False)
+        
+
 

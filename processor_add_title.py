@@ -27,12 +27,24 @@ class ProcessorAddTitle(Processor):
 
 
     def get_title(self, article: str):
-        ai_prompt = f"""給下面基督教牧師的講道加標題,標題要简洁。標題使用繁體中文。
-        回答JSON格式:
+        json_format = """
+        ```json
+        {            
+            "title": "信心的持續"
+        }
+        ```
+        """
+
+
+        ai_prompt = f"""給下面基督教福音派教授的講道加標題,標題要简洁。標題使用繁體中文。
+        回答符合下面JSON格式：
+        {json_format}
+        教授講道內容：
         {article}  
         """              
+        provider = os.getenv("PROVIDER")  
 
-        title =  call_llm('deepseek', ai_prompt)
+        title =  call_llm(provider, ai_prompt)
         title_key = next(iter(title))
         return title[title_key]
         
@@ -55,7 +67,9 @@ class ProcessorAddTitle(Processor):
 
 
 if __name__ == '__main__':
-    base_folder = '/Volumes/Jun SSD/data'  
+    base_folder = '/opt/homebrew/var/www/church/web/data'  
     processor = ProcessorAddTitle()
-    processor.process(base_folder + '/' + processor.get_input_folder_name(), 'S 200503', base_folder + '/' + processor.get_output_folder_name(), 'sermon.json')
+    item = ['S 210725 (2)','S 210822 (2)','S 210905 (2)','S 210912 (3)','S 210919 (4)','S 211003 (2)','S 211212 (2)']
+    for i in item:
+        processor.process(base_folder + '/' + processor.get_input_folder_name(), i, base_folder + '/' + processor.get_output_folder_name(), 'sermon.json')
     pass

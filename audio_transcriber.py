@@ -271,7 +271,7 @@ class AudioTranscriber:
         except Exception as e:
             logger.error(f"Error cleaning up: {str(e)}")
     
-    def transcribe(self, audio_path, min_silence_len=500, silence_thresh=-40):
+    def transcribe(self, audio_path, min_silence_len=500, silence_thresh=-40, target_size_mb=10):
         """
         Main method to transcribe a large audio file
         """
@@ -280,7 +280,7 @@ class AudioTranscriber:
             chunks = self.split_audio_by_size_at_silence(
                 audio_path, 
                 min_silence_len=min_silence_len, 
-                silence_thresh=silence_thresh
+                silence_thresh=silence_thresh, target_size_mb=target_size_mb
             )
             
             # Save chunks to temporary files
@@ -305,11 +305,14 @@ class AudioTranscriber:
 
 
 if __name__ == "__main__":
-    audio_path = '/Volumes/Jun SSD/data/audio/S 200322 羅10 6-21 以色列人不信福音7.mp3'
+    base_dir = '/Volumes/Jun SSD/data'
+    item = '011WSR01'
+    audio_path = os.path.join(base_dir, 'audio', item + '.mp3')
+    trans_path = os.path.join(base_dir, 'script',item )
     #    audio_path = '/Volumes/Jun SSD/data/audio/S 190825-GH070077.mp3'
 
     output = 'data/transcription'
-    transcriber = AudioTranscriber(output_item=output)
+    transcriber = AudioTranscriber(trans_path)
     transcriber.transcribe(
         audio_path
     )

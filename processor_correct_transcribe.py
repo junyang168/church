@@ -41,16 +41,16 @@ class ProcessorCorrectTranscription(Processor):
         """
 
         ai_prompt = f"""作为转录编辑，下面文字是根據基督教牧師講道的錄音轉錄的。請使用繁体中文分段落，加標點，改正轉錄錯誤，並保持前後文連貫性。注意
+        - 僅返回修改後結果
         - 保留索引
         - 保留原意，不要改變講道的內容
         - 每個段落不要超過 1000 字
-        回答符合下面JSON格式：
+        - 回答符合下面JSON格式：
         {json_format}
         前文上下文：{previous_text} 
         待修改內容：{current_text}                
         """
-        provider = 'deepseek'
-        #provider = 'together'
+        provider = os.getenv("PROVIDER")  
         res = call_llm(provider, ai_prompt)
         return res
 
@@ -115,7 +115,7 @@ class ProcessorCorrectTranscription(Processor):
                 prev_para = ''
 
             para = ''
-            para_limit = 1000
+            para_limit = 40000
             prev_index = index
             while index < len(sorted_data):
                 line = sorted_data[index]
@@ -137,7 +137,7 @@ class ProcessorCorrectTranscription(Processor):
 #                    print(f"Diff: {diff} Retry: {retries}")
 #                    retries -= 1
                 if len(formatted_para) > 1:
-                    para_limit = 1000
+                    para_limit = 40000
                     prev_para = '\n\n'.join( [ p for p in corrected_para[-2:-1]] )
                     paragraphs.extend(formatted_para[:-1])
                     self.save(output_file_name, paragraphs)
@@ -260,4 +260,4 @@ if __name__ == '__main__':
         processor.process(base_folder + '/' + 'script', sermon_item, base_folder + '/script_patched')
     pass
     '''
-    processor.process(base_folder + '/' + 'script', '011WSR01', base_folder + '/script_patched')
+    processor.process(base_folder + '/' + 'script', '2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之1', base_folder + '/script_patched')
