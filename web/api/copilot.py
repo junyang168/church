@@ -8,6 +8,15 @@ import xml.etree.ElementTree as ET
 from google import genai
 from google.genai import types
 
+from dotenv import load_dotenv
+env_file = os.getenv("ENV_FILE")
+print(f'env_file: {env_file}')
+if env_file:
+    load_dotenv(env_file)
+else:
+    load_dotenv()  # Fallback to default .env file in the current directory
+
+
 
 class ChatMessage(BaseModel):
     role: str
