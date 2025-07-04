@@ -324,7 +324,7 @@ sermonManager = SermonManager()
 
 if __name__ == '__main__':
     
-    resp = sermonManager.chat('junyang168@gmail.com', '2019-2-15 心mp4', [  ChatMessage(role='user',content='總結主题') ])
+    resp = sermonManager.chat('junyang168@gmail.com', '2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之1', [  ChatMessage(role='user',content='總結主题') ])
     print(resp)
     exit(0)
     

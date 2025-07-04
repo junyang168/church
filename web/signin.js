@@ -117,8 +117,7 @@ async function checkSignin() {
     }
 
 
-    if(  !sessionStorage.getItem('userId')) {
-
+    if( env =='production' &&  !sessionStorage.getItem('userId')) {
         if(main)
             main.style.display = "none";
         if( msg) 
@@ -127,10 +126,10 @@ async function checkSignin() {
             alert('Please sign into Google')
         return null;
     }
-//    else if (env == 'dev' ) {    
-//            sessionStorage.setItem('userId', 'junyang168@gmail.com')
-//            sessionStorage.setItem('picture','https://lh3.googleusercontent.com/a/ACg8ocKPLUaez5y6suLdpjEb6453tOtm_AyXXR1JgIJZLW3xeOKRO7aN=s96-c')
-//    }
+    else if (env == 'dev') {    
+            sessionStorage.setItem('userId', 'junyang168@gmail.com')
+            sessionStorage.setItem('picture','https://lh3.googleusercontent.com/a/ACg8ocKPLUaez5y6suLdpjEb6453tOtm_AyXXR1JgIJZLW3xeOKRO7aN=s96-c')
+    }
 
     if(main)
         main.style.display = 'block'

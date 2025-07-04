@@ -46,7 +46,7 @@ class Document(BaseModel):
 class Copilot:
     def map_prompt(self, question:str) -> str:
         if question == "總結主题":
-            return """总结下面牧师讲道的主要观点.回答以下格式。例子：
+            return """总结下面牧师讲道的主題和主要观点.回答以下格式。例子：
         主题
         1. 观点 1
         2. 观点 2"""   
@@ -70,6 +70,7 @@ class Copilot:
 
 
     def parse_response(self, response:str) -> dict:
+        return ChatResponse(quotes=[], answer=response )
         root = ET.fromstring("<root>" + response + "</root>")
         quotes = root.findall('.//quotes/quote')
         quotes = self.parse_quotes(quotes)
@@ -156,6 +157,7 @@ class Copilot:
 
 
     def __init__(self):
+        
         self.system_prompt = """你是資深的基督教福音派牧師。現在要回答與下面講道相關的問題。回答符合講道的聖經觀點。
 1. 下面提供了幾篇相關的講道。每篇講道以<document>標籤分隔。講道的內容放在<document><document_content>標籤中. 講道的每個段落前都有一個索引號碼。（例如[1]或[1_1])。講道的來源放在<document><source>標籤中. 講道的索引號碼放在<document>的index屬性中.
 2. 回答問題時，應將答案放在<answer></answer>標籤中。不要直接引用或逐字重複引文內容。回答時，不要說“根據Quote 1”。若答案中某部分與特定引文相關，在回答每個相關部分的句子末尾，僅透過添加帶括號的數字來引用相關的引文。（例如：這是一個示例句子[1]。）
@@ -181,6 +183,13 @@ class Copilot:
 
 
 请开始对话："""
+
+        self.system_prompt = """
+你是資深的基督教福音派牧師。現在要回答與下面講道相關的問題。回答符合講道的聖經觀點。
+ 下面提供了幾篇相關的講道。每篇講道以<document>標籤分隔。講道的內容放在<document><document_content>標籤中. 講道的每個段落前都有一個索引號碼。（例如[1]或[1_1])。講道的來源放在<document><source>標籤中. 講道的索引號碼放在<document>的index屬性中.
+讲道内容:
+{context_str}
+"""
 
 
 if __name__ == "__main__":
