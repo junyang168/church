@@ -244,8 +244,13 @@ class SermonManager:
         sermon_data['metadata']['item'] = sermon.item
         sermon_data['metadata']['title'] = sermon.title if sermon.title else sermon.item
         sermon_data['metadata']['summary'] = sermon.summary
-        if quote:
-            sermon_data['metadata']['quotes'] = [p['index'] for p in sermon_data['script'] if quote in p['text']]
+        sermon_data['metadata']['type'] = sermon.type
+        sermon_data['metadata']['deliver_date'] = sermon.deliver_date
+        sermon_data['metadata']['theme'] = sermon.theme if sermon.theme else sermon.title
+        sermon_data['metadata']['assigned_to_name'] = sermon.assigned_to_name
+        sermon_data['metadata']['author'] = sermon.author_name if sermon.author_name else '王守仁'
+        sermon_data['metadata']['status'] = sermon.status
+
         return sermon_data
     
     def get_sitemap(self):
@@ -273,7 +278,32 @@ class SermonManager:
         copilot = Copilot()
         docs = [Document(item=item, document_content=article)]
         return copilot.chat(docs, history)
+    
+    def summarize(self, title, items:List[str]) -> str:
+        doc = ""
+        for item in items:
+            sd = ScriptDelta(self.base_folder, item)
+            script = sd.get_final_script(False)
+            article =  '\n\n'.join([ p['text'] for p in script['script'] ])
+            doc += article + '\n\n'
+        copilot = Copilot()
+        history = [  ChatMessage(role='user',content='寫一段關於馬太福音 24 章簡介和講道的開場白') ]
+        docs = [Document(item=title, document_content=doc)]
+        return copilot.chat(docs, history)
 
+    def save_sermon_series(self,  series_name:str, items:List[str]) -> str:
+        """
+        Save sermon series to the file.
+        """
+        doc = ""
+        for item in items:
+            sd = ScriptDelta(self.base_folder, item)
+            script = sd.get_final_script(False)
+            article =  '\n\n'.join([ p['text'] for p in script['script'] ])
+            doc += article + '\n\n'
+        with open(os.path.join(self.base_folder,'output', series_name +'.txt'), 'w') as f:
+            f.write(doc)
+        return doc
 
     def get_relevant_items(self, question)->set:
         url = f"{self.semantic_search_url}/semantic_search/{question}"
@@ -322,8 +352,31 @@ class ConfigFileEventHandler(FileSystemEventHandler):
 
 sermonManager = SermonManager()
 
+
 if __name__ == '__main__':
+    items = [
+        '2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之1',
+        '2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之2',
+        '2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之3',
+        '2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之4'   
+    ]
+
+    items = [
+        '011WSR01',
+        '011WSR02',
+        '011WSR03',
+        '2022年 NYSC 專題 馬太福音釋經（九）王守仁 教授  第二堂'
+    ]
+    resp = sermonManager.save_sermon_series('2022 NYSC 專題：馬太福音釋經（九）', items)
+    print(resp)
+
+    """
+你是基督教福音派的資深基督徒。以下是週五團契的講稿。为以上讲稿生成 PPT。Slide 数量不要太多，中文用繁体。PPT 要包括讲稿中提到的圣经原文。
+講稿：
     
+    """
+
+
     resp = sermonManager.chat('junyang168@gmail.com', '2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之1', [  ChatMessage(role='user',content='總結主题') ])
     print(resp)
     exit(0)
