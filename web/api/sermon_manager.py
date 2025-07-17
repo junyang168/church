@@ -231,7 +231,7 @@ class SermonManager:
         ScriptDelta(self.base_folder, item).publish(sermon.assigned_to)
         return {"message": "sermon has been published"}
     
-    def get_final_sermon(self, user_id:str, item:str,  remove_tags:bool = True, quote:str = None) -> dict:
+    def get_final_sermon(self, user_id:str, item:str,  remove_tags:bool = True) -> dict:
         permissions = self.get_sermon_permissions(user_id, item)
         if not permissions.canRead:
             return  {"message": "You don't have permission to update this item"}
@@ -250,6 +250,8 @@ class SermonManager:
         sermon_data['metadata']['assigned_to_name'] = sermon.assigned_to_name
         sermon_data['metadata']['author'] = sermon.author_name if sermon.author_name else '王守仁'
         sermon_data['metadata']['status'] = sermon.status
+        sermon_data['metadata']['core_bible_verse'] = sermon.core_bible_verse
+        sermon_data['metadata']['keypoints'] = sermon.keypoints if sermon.keypoints else ''
 
         return sermon_data
     
