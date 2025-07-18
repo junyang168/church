@@ -37,7 +37,7 @@ class ProcessorSummarize(Processor):
         ```
         """
 
-        ai_prompt = f"""请給下面基督教牧師的講道加標題,然後写一个简洁的摘要。
+        ai_prompt = f"""请給下面基督教福音派教授的講道加標題,然後写一个简洁的摘要。
         1. 標題要简洁
         2. 摘要先点出主题，再加核心内容。简介不要超过 100 字。
         3. 使用繁體中文
@@ -90,57 +90,42 @@ class ProcessorSummarize(Processor):
 
 
 if __name__ == '__main__':
+    import requests
+    import time    
     base_folder = '/opt/homebrew/var/www/church/web/data'  
     meta_file_name = base_folder + '/config/' + 'sermon.json'
-    item_name = '011WSR01'
     processor = ProcessorSummarize()
-    processor.process(
-        base_folder + '/' + processor.get_input_folder_name(), 
-        item_name,
-        base_folder + '/' + processor.get_output_folder_name(), 
-            meta_file_name = base_folder + '/config/' + 'sermon.json')
 
-    exit()
-
-
-
-    listdir = os.listdir(base_folder + '/' + processor.get_input_folder_name())
-    for file in listdir:
-        item_name = file.split('.')[0]
-        processor.process(
-            base_folder + '/' + processor.get_input_folder_name(), 
-            item_name,
-            base_folder + '/' + processor.get_output_folder_name(), 
-            meta_file_name = base_folder + '/config/' + 'sermon.json')
-    exit()
-
-
-
-    listdir = os.listdir(base_folder + '/' + processor.get_input_folder_name())
     with open(meta_file_name, 'r') as fsc:
         metadata = json.load(fsc)
-    for file in listdir:
-        item_name = file.split('.')[0]
-        with open(base_folder + '/' + processor.get_input_folder_name() + '/' + file, 'r') as fsc:
-            surmon = json.load(fsc)
-        sermon_meta = next((item for item in metadata if item['item'] == item_name), None)
-        with open(base_folder + '/' + processor.get_output_folder_name() + '/' + item_name + '.json', 'r') as fsc:
-            summary = json.load(fsc)
-        sermon_meta['theme'] = summary['theme']
-        sermon_meta['summary'] = summary['content']
-        if not isinstance(surmon, dict):
-            surmon = { 'script': surmon, 'metadata': sermon_meta}
-        else:
-            surmon['metadata'] = sermon_meta
-        with open(base_folder + '/' + processor.get_input_folder_name() + '/' + file, 'w') as fsc:
-            json.dump(surmon, fsc, indent=4, ensure_ascii=False)
-    with open(meta_file_name, 'w') as fsc:
-        json.dump(metadata, fsc, indent=4, ensure_ascii=False)
-    exit()
-    for file in listdir:
-        item_name = file.split('.')[0]
-        processor.process(
-            base_folder + '/' + processor.get_input_folder_name(), 
-            item_name,
-            base_folder + '/' + processor.get_output_folder_name(), 
-            meta_file_name = base_folder + '/config/' + 'sermon.json')
+    url = "http://127.0.0.1:8000/sc_api/final_sermon/junyang168@gmail.com/" 
+
+    for idx, sermon in enumerate( metadata):
+        item_name = sermon['item']
+        if sermon['status'] == 'in development':
+            continue
+
+        if sermon.get('summary'):
+            print(f"summary for {item_name} already exists.")
+            continue
+
+        print(f"{idx}: {item_name}")
+
+        response = requests.get(url + item_name)
+        sermon_detail = response.json()
+
+        paragraphs = sermon_detail['script']
+
+        theme = sermon['theme'] if sermon['theme'] else sermon['title']
+
+        article = theme + '\n\n' + '\n\n'.join( [ p['text'] for p in paragraphs ] )
+
+        summary = processor.get_summary(article)
+
+        sermon['summary'] = summary['content']        
+
+        with open(meta_file_name, 'w') as fsc:
+            json.dump(metadata, fsc, indent=4, ensure_ascii=False)
+
+        time.sleep(10)  # pause for 10 seconds to avoid rate limit
+
