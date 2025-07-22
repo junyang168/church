@@ -145,6 +145,10 @@ def publish(user_id:str, item:str):
 def get_sermon(user_id:str, item: str,  remove_tags:bool = True):    
     return sm.sermonManager.get_final_sermon(user_id,item,remove_tags)
 
+@app.get("/sc_api/sermon_series")
+def get_sermon_series():    
+    return sm.sermonManager.get_sermon_series()
+
 
 from fastapi.staticfiles import StaticFiles
 

@@ -335,6 +335,21 @@ class SermonManager:
             docs.append(Document(item=item, document_content=article))
         copilot = Copilot()
         return copilot.chat(docs, history)
+    
+    def get_sermon_series(self):
+        series_meta_file = os.path.join(self.config_folder, 'sermon_series.json')
+        if not os.path.exists(series_meta_file):
+            return []
+        with open(series_meta_file, 'r', encoding='utf-8') as fsc:
+            series_meta = json.load(fsc)
+        for series in series_meta:
+            sermons = []
+            for item in series.get('sermons', []):
+                sermon_meta = self._sm.get_sermon_metadata('junyang168@gmail.com', item)
+                if sermon_meta:
+                    sermons.append(sermon_meta)
+            series['sermons'] = sermons
+        return series_meta
 
 
 
