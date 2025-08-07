@@ -351,6 +351,28 @@ class SermonManager:
             series['sermons'] = sermons
         return series_meta
 
+    def get_article_series(self):
+        series_meta_file = os.path.join(self.config_folder, 'article_series.json')
+        if not os.path.exists(series_meta_file):
+            return []
+        with open(series_meta_file, 'r', encoding='utf-8') as fsc:
+            series_meta = json.load(fsc)
+        return series_meta
+
+    def get_article_with_series(self, article_id:str):
+        article_file = os.path.join(self.base_folder, 'article', article_id + '.md')
+        with open(article_file, 'r', encoding='utf-8') as fsc:
+            article_content = fsc.read()
+        series_meta = self.get_article_series()
+        for series in series_meta:
+            articles = series.get('articles', [])
+            for article in articles:
+                if article.get('item') == article_id:
+                    new_article = article.copy()
+                    new_article['markdownContent'] = article_content
+                    new_article['series'] = series
+                    return new_article
+        return {}
 
 
 class ConfigFileEventHandler(FileSystemEventHandler):
@@ -371,6 +393,8 @@ sermonManager = SermonManager()
 
 
 if __name__ == '__main__':
+    article = sermonManager.get_article_with_series('馬太福音 24 章深入研讀 1')
+
     items = [
         '2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之1',
         '2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之2',

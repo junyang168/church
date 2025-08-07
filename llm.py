@@ -55,7 +55,7 @@ def gemini_generate(prompt: str):
         contents=contents,
         config=generate_content_config,
     )
-    print(response.usage_metadata)
+#    print(response.usage_metadata)
     return response.text
 
 def call_llm(provider:str, ai_prompt:str,  model:str = None) -> dict:

@@ -149,6 +149,15 @@ def get_sermon(user_id:str, item: str,  remove_tags:bool = True):
 def get_sermon_series():    
     return sm.sermonManager.get_sermon_series()
 
+@app.get("/sc_api/article_series")
+def get_sermon_series():    
+    return sm.sermonManager.get_article_series()
+
+@app.get("/sc_api/article/{article_id}")
+def get_article(article_id:str):    
+    return sm.sermonManager.get_article_with_series(article_id)
+
+
 
 from fastapi.staticfiles import StaticFiles
 
