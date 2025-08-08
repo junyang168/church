@@ -157,3 +157,8 @@ class SermonMetaManager:
         domain = 'https://holylogos.org'
         published_sermons = [ s for s in self.sermons if s.status != 'in development']
         return self.generate_sitemap(published_sermons, domain)
+    
+    def get_latest_sermons(self, count:int = 2) -> List[Sermon]:
+        sermons = [s for s in self.sermons if s.status == 'published']
+        sermons.sort(key=lambda x: x.published_date, reverse=True)
+        return sermons[:count]

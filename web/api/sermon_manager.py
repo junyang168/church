@@ -373,6 +373,24 @@ class SermonManager:
                     new_article['series'] = series
                     return new_article
         return {}
+    
+    def get_latest_articles(self, count:int = 2) -> List[dict]:
+        articleSeries = self.get_article_series()
+        articles = []
+        for series in articleSeries:
+            for article in series.get('articles', []):
+                if article.get('status', '') != 'in development':
+                    articles.append(article)
+        articles.sort(key=lambda x: x.get('deliver_date', ''), reverse=True)
+        return articles[:count]
+    
+    def get_latest_sermons_articles(self, count:int = 2):
+        sermons = self._sm.get_latest_sermons(count)
+        articles = self.get_latest_articles(count)
+        return {
+            'sermons': sermons,
+            'articles': articles
+        }
 
 
 class ConfigFileEventHandler(FileSystemEventHandler):
@@ -393,6 +411,8 @@ sermonManager = SermonManager()
 
 
 if __name__ == '__main__':
+    res = sermonManager.get_latest_sermons_articles(2)
+
     article = sermonManager.get_article_with_series('馬太福音 24 章深入研讀 1')
 
     items = [
