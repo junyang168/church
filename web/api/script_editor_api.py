@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Union, Optional
+from typing import Dict, List, Union, Optional
 import boto3
 import json
 import os
@@ -15,10 +15,12 @@ else:
 
 
 import sermon_manager as sm
+import qaManager as qam
 from script_delta import ScriptDelta
 from fastapi.responses import HTMLResponse
 import sermon_meta 
 from copilot import ChatMessage
+
 
 import mistune
 
@@ -204,6 +206,25 @@ def chat( user_id:str, req : ChatRequest):
 def qa( user_id:str, history:List[ChatMessage]):
     return sm.sermonManager.qa(user_id, history)
 
+@app.get("/sc_api/qas/{user_id}")
+def get_qas(user_id:str) -> List[qam.QAItem]:
+    return qam.qaManager.get_qas(user_id)
+
+@app.post("/sc_api/qas/{user_id}")
+def add_qa(user_id, qa_item: qam.QAItem) -> qam.QAItem:
+    return qam.qaManager.add_qa(user_id, qa_item)
+
+@app.put("/sc_api/qas/{user_id}")
+def update_qa(user_id, qa_item: qam.QAItem) -> qam.QAItem:
+    return qam.qaManager.update_qa(user_id, qa_item)
+
+@app.delete("/sc_api/qas/{user_id}/{qa_id}")
+def delete_qa(user_id, qa_id: str):
+    return qam.qaManager.delete_qa(user_id, qa_id)
+
+@app.get("/sc_api/qas/{user_id}/{qa_id}")
+def get_qa_by_id(user_id: str, qa_id: str) -> Optional[qam.QAItem]:
+    return qam.qaManager.get_qa_by_id(user_id, qa_id)
 
 if __name__ == "__main__":
 
