@@ -352,35 +352,50 @@ class SermonManager:
         return series_meta
 
     def get_article_series(self):
+        articles_series = self.get_articles_and_series()
+        series_meta = articles_series.get('series')
+
+        new_series_meta = series_meta.copy()        
+        for series in new_series_meta:
+            series['articles'] = self.get_series_data(series, articles_series).get('articles', [])
+        return new_series_meta
+    
+    def get_articles_and_series(self):
         series_meta_file = os.path.join(self.config_folder, 'article_series.json')
         if not os.path.exists(series_meta_file):
-            return []
+            return {"series": [], "articles": []}
         with open(series_meta_file, 'r', encoding='utf-8') as fsc:
             series_meta = json.load(fsc)
         return series_meta
+    
+    def get_series_data(self, series, articles_series):
+        new_series = series.copy()
+        new_series['articles'] = []
+        for article in series.get('articles', []):
+            article_meta = next((a for a in articles_series.get('articles', []) if a.get('item') == article), None)
+            if article_meta:
+                new_series['articles'].append(article_meta)
+        return new_series
 
     def get_article_with_series(self, article_id:str):
+        articles_series = self.get_articles_and_series()
+        articles_meta = articles_series.get('articles', [])
         article_file = os.path.join(self.base_folder, 'article', article_id + '.md')
         with open(article_file, 'r', encoding='utf-8') as fsc:
             article_content = fsc.read()
-        series_meta = self.get_article_series()
-        for series in series_meta:
-            articles = series.get('articles', [])
-            for article in articles:
-                if article.get('item') == article_id:
-                    new_article = article.copy()
-                    new_article['markdownContent'] = article_content
-                    new_article['series'] = series
-                    return new_article
-        return {}
-    
+        article_meta = next((a for a in articles_meta if a.get('item') == article_id), None)
+        new_article = article_meta.copy()
+        new_article['markdownContent'] = article_content
+        new_article['series'] = []
+        for series in articles_series.get('series', []):
+            for aid in series.get('articles', []):
+                if aid == article_id:
+                    new_article['series'] = self.get_series_data(series, articles_series)
+                    break
+        return new_article
+
     def get_latest_articles(self, count:int = 2) -> List[dict]:
-        articleSeries = self.get_article_series()
-        articles = []
-        for series in articleSeries:
-            for article in series.get('articles', []):
-                if article.get('status', '') != 'in development':
-                    articles.append(article)
+        articles = self.get_articles_and_series().get('articles', [])
         articles.sort(key=lambda x: x.get('deliver_date', ''), reverse=True)
         return articles[:count]
     
@@ -411,9 +426,14 @@ sermonManager = SermonManager()
 
 
 if __name__ == '__main__':
+
+    article_with_no_series = sermonManager.get_article_with_series('解經法比較')
+    series = sermonManager.get_article_series()
+    article = sermonManager.get_article_with_series('馬太福音 24 章深入研讀 1')
+
+
     res = sermonManager.get_latest_sermons_articles(2)
 
-    article = sermonManager.get_article_with_series('馬太福音 24 章深入研讀 1')
 
     items = [
         '2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之1',
