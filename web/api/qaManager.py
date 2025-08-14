@@ -47,6 +47,15 @@ class QAManager:
     def get_qas(self, user_id: str) -> List[QAItem]:
         return self.qas
 
+    def get_top_qas(self,  limit: int = 2) -> List[QAItem]:
+        sorted_qas = sorted(
+            [qa for qa in self.qas if qa.date_asked],
+            key=lambda x: x.date_asked,
+            reverse=True
+        )
+        return sorted_qas[:limit]
+        
+
     def get_qa_by_id(self, user_id: str, qa_id: str) -> Optional[QAItem]:
         for item in self.qas:
             if item.id == qa_id:
@@ -82,6 +91,8 @@ class QAManager:
 qaManager = QAManager()
 
 if __name__ == "__main__":
+    top_qas = qaManager.get_top_qas("junyang168@gmail.com")
+
     item = QAItem(
         id="new-",
         question="What is faith?",

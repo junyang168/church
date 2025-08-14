@@ -162,7 +162,9 @@ def get_article(article_id:str):
 
 @app.get("/sc_api/top_sermon_articles/{count}")
 def get_latest_sermons_articles(count:int = 2):
-    return sm.sermonManager.get_latest_sermons_articles(count)
+    tops =  sm.sermonManager.get_latest_sermons_articles(count)
+    tops["qas"] = qam.qaManager.get_top_qas(count)
+    return tops
 
 from fastapi.staticfiles import StaticFiles
 
