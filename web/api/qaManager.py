@@ -14,6 +14,7 @@ class QAItem(BaseModel):
     createdAt: str = None
     isVerified: bool = False
     related_article: Optional[str] = None
+    date_asked:str = None
 
 
 
