@@ -87,6 +87,12 @@ class SermonMetaManager:
                 if len(dp) == 3:
                     deliver_date = datetime.datetime(int(dp[0]), int(dp[1]), int(dp[2]))    
                     s.deliver_date = deliver_date.strftime('%Y-%m-%d')
+    
+    def kps_to_str(self, kps):
+        if isinstance(kps, list):
+            return '\n'.join(str(kp) for kp in kps)
+        else:
+            return kps
 
     def load_sermon_metadata(self):        
         with open(self.metadata_file_path) as f:            
@@ -94,7 +100,7 @@ class SermonMetaManager:
 
 #        sermon_dev = self.load_dev_sermon()
 #        self.merge_dev(sermon_meta, sermon_dev)
-
+        
 
         
         self.sermons = [Sermon( item=m.get('item'),
@@ -107,9 +113,9 @@ class SermonMetaManager:
                                        deliver_date=m.get('deliver_date'),
                                        last_updated= m.get('last_updated') if m.get('last_updated') else '2025-03-01 17:33',
                                        type=m.get('type'),
-                                       published_date=m.get('published_date'),
+                                       published_date=  m.get('published_date'),
                                        thumbnail= '/web/data/thumbnail/' + m.get('item') + '.jpg',
-                                       keypoints=m.get('keypoints'),
+                                       keypoints= self.kps_to_str(m.get('keypoints')),
                                        core_bible_verse=m.get('core_bible_verse', []),
                                        ) for m in self.sermon_meta]
         self.format_delivery_date()
