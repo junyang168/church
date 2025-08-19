@@ -89,8 +89,8 @@ class SermonMetaManager:
                     s.deliver_date = deliver_date.strftime('%Y-%m-%d')
 
     def load_sermon_metadata(self):        
-        with open(self.metadata_file_path) as f:
-            sermon_meta = json.load(f)
+        with open(self.metadata_file_path) as f:            
+            self.sermon_meta = json.load(f)
 
 #        sermon_dev = self.load_dev_sermon()
 #        self.merge_dev(sermon_meta, sermon_dev)
@@ -111,11 +111,14 @@ class SermonMetaManager:
                                        thumbnail= '/web/data/thumbnail/' + m.get('item') + '.jpg',
                                        keypoints=m.get('keypoints'),
                                        core_bible_verse=m.get('core_bible_verse', []),
-                                       ) for m in sermon_meta]
+                                       ) for m in self.sermon_meta]
         self.format_delivery_date()
 
         for s in self.sermons:
             s.assigned_to_name = self.user_getter(s.assigned_to).get('name')
+
+    def get_sermon_meta_str(self) -> str:
+        return json.dumps(self.sermon_meta, ensure_ascii=False, indent=2)
 
     def convert_datetime_to_cst_string(self, dt: datetime.datetime) -> str:
         central = pytz.timezone('America/Chicago')

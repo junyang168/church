@@ -156,6 +156,7 @@ class Copilot:
         chat = client.chats.create(model=model,history=historyontent)
         resp =  chat.send_message(user_message['content'],config=config)
         return resp.text
+    
 
 
     def __init__(self):

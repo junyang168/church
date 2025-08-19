@@ -17,6 +17,16 @@ from copilot import Copilot, ChatMessage, Document
 from typing import List
 import requests
 
+from google import genai
+from google.genai import types
+from dotenv import load_dotenv
+env_file = os.getenv("ENV_FILE")
+print(f'env_file: {env_file}')
+if env_file:
+    load_dotenv(env_file)
+else:
+    load_dotenv()  # Fallback to default .env file in the current directory
+
 
 class Permission(BaseModel):
     canRead: bool
@@ -262,6 +272,10 @@ class SermonManager:
         sd = ScriptDelta(self.base_folder, item)
         return sd.search(text_list)
 
+    def search(self, term: str) -> dict:
+        sd = ScriptDelta(self.base_folder, item)
+        return sd.search([term])
+
     def chat( self, user_id : str, item :str, history:List[ChatMessage], is_published=False ) -> str:
         permissions = self.get_sermon_permissions(user_id, item)
         if not permissions.canRead:
@@ -407,6 +421,41 @@ class SermonManager:
             'articles': articles
         }
 
+    def quick_search(self, term: str) -> List[str]:
+        sermon_data = self._sm.get_sermon_meta_str()
+        prompt = f"""The json data about a list of sermons. The id of sermons is "item" field.
+Your task is return the most relevant sermons related to users's query using the json data. Sort by relevance in descending order.
+return the list of sermon ids(item) only in json format.
+sermon data:
+{sermon_data}
+User Query:
+{term}
+"""
+        client = genai.Client() if env_file is None else genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+        model = "gemini-2.5-flash"
+        contents = [
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_text(text=prompt),
+                ],
+            ),
+        ]
+        generate_content_config = types.GenerateContentConfig(
+            thinking_config = types.ThinkingConfig(
+                thinking_budget=0,
+            ),
+            response_mime_type="application/json",
+        )
+        
+        response =  client.models.generate_content(
+            model=model,
+            contents=contents,
+            config=generate_content_config,
+        )
+    #    print(response.usage_metadata)
+        ids = json.loads(response.text)
+        return ids
 
 class ConfigFileEventHandler(FileSystemEventHandler):
     def __init__(self, refreshers: list):
@@ -426,6 +475,8 @@ sermonManager = SermonManager()
 
 
 if __name__ == '__main__':
+
+    res = sermonManager.quick_search('因信稱義')
 
     article_with_no_series = sermonManager.get_article_with_series('解經法比較')
     series = sermonManager.get_article_series()

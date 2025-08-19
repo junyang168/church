@@ -199,7 +199,12 @@ def get_sermon_page(item):
 @app.post("/sc_api/search")
 def search_script( req : SearchRequest):
     return sm.sermonManager.search_script(req.item, req.text_list)
-    
+
+@app.get("/sc_api/quick_search/{term}")
+def quick_search( term: str) -> list[str]:
+    return sm.sermonManager.quick_search(term)
+
+
 @app.post("/sc_api/chat/{user_id}")
 def chat( user_id:str, req : ChatRequest):
     return sm.sermonManager.chat(user_id, req.item, req.history)
