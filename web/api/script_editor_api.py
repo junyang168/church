@@ -213,9 +213,9 @@ def chat( user_id:str, req : ChatRequest):
 def qa( user_id:str, history:List[ChatMessage]):
     return sm.sermonManager.qa(user_id, history)
 
-@app.get("/sc_api/qas/{user_id}")
-def get_qas(user_id:str) -> List[qam.QAItem]:
-    return qam.qaManager.get_qas(user_id)
+@app.get("/sc_api/qas")
+def get_qas(articleId: str) -> List[qam.QAItem]:
+    return qam.qaManager.get_qas(articleId)
 
 @app.post("/sc_api/qas/{user_id}")
 def add_qa(user_id, qa_item: qam.QAItem) -> qam.QAItem:

@@ -44,8 +44,11 @@ class QAManager:
         self.save_qas()
         return new_qa_item
 
-    def get_qas(self, user_id: str) -> List[QAItem]:
-        return self.qas
+    def get_qas(self, articleId : str = None) -> List[QAItem]:
+        if articleId:
+            return [qa for qa in self.qas if qa.related_article == articleId]
+        else:
+            return self.qas
 
     def get_top_qas(self,  limit: int = 2) -> List[QAItem]:
         sorted_qas = sorted(

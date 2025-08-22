@@ -2,6 +2,7 @@
 import json
 from llm import call_llm
 
+base_dir = '/Users/junyang'
 
 def get_sermon_content(sermon_meta: dict)-> str:
     item = sermon_meta['item'] 
@@ -11,7 +12,7 @@ def get_sermon_content(sermon_meta: dict)-> str:
 
     paragraphs = sermon_detail['script']
 
-    theme = sermon_meta['theme'] if sermon_meta['theme'] else sermon_meta['title']
+    theme = sermon_meta.get('theme', sermon_meta['title'])
 
     article = theme + '\n\n' + '\n\n'.join( [ p['text'] for p in paragraphs ] )
     return article
@@ -59,7 +60,6 @@ def get_summary( article: str):
     return summary
 
 def create_series(all_sermons_meta: dict, series_items: list[str], series_name: str) -> str:
-    base_dir = '/Users/junyang'
     with open( base_dir + '/church/web/data/config/sermon_series.json', 'r', encoding='utf-8') as f:
         series_meta_data = json.load(f)
     series = next((s for s in series_meta_data if s['id'] == series_name), None)
@@ -85,6 +85,12 @@ def create_series(all_sermons_meta: dict, series_items: list[str], series_name: 
         
     return series    
 
+def update_series_content(series_name: str, all_sermons_meta: dict, series_items: list[str]):
+    series_content = "#" + series_name + ' 系列\n\n'
+    series_content += get_series_content(all_sermons_meta, series_items)
+    with open(base_dir + f'/church/web/data/sermon_series/{series_name}.txt', 'w', encoding='utf-8') as f:
+        f.write(series_content)
+
 if __name__ == '__main__':
     import requests
     import time    
@@ -93,6 +99,27 @@ if __name__ == '__main__':
 
     with open(meta_file_name, 'r') as fsc:
         all_sermons_meta = json.load(fsc)
+
+    series_name = "2018 NYSC 專題：馬太福音釋經（七）​"
+    series_items = [
+        "2018 NYSC 專題：馬太福音釋經（七）1",
+        "2018 NYSC 專題：馬太福音釋經（七）2",
+        "2018 NYSC 專題：馬太福音釋經（七）3",
+        "2018 NYSC 專題：馬太福音釋經（七）4"
+    ]
+    create_series(all_sermons_meta, series_items, series_name)
+    exit()
+
+    series_items = [
+        "2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之1",
+        "2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之2",
+        "2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之3",
+        "2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之4"
+    ]
+    series_name = "2021 NYSC 專題：馬太福音釋經（八)"
+    update_series_content(series_name, all_sermons_meta, series_items)
+    exit()
+
 
     series_items = [
         "S 200913 林前1 教會的身份",

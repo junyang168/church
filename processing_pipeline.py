@@ -17,7 +17,7 @@ from processor_correct_transcribe import ProcessorCorrectTranscription
 from processor_add_title import ProcessorAddTitle
 from processor_summarize import ProcessorSummarize
 from processor_thumbnail import ProcessorGenerateThumbnail
-from processor_get_keypoints import ProcessorGetKeypoints
+from tags.sermon_summarizer import ProcessorGetKeypoints
 import json
 import datetime
 
