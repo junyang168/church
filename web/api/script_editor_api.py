@@ -214,7 +214,7 @@ def qa( user_id:str, history:List[ChatMessage]):
     return sm.sermonManager.qa(user_id, history)
 
 @app.get("/sc_api/qas")
-def get_qas(articleId: str) -> List[qam.QAItem]:
+def get_qas(articleId: str = None) -> List[qam.QAItem]:
     return qam.qaManager.get_qas(articleId)
 
 @app.post("/sc_api/qas/{user_id}")
