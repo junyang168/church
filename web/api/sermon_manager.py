@@ -262,6 +262,7 @@ class SermonManager:
         sermon_data['metadata']['status'] = sermon.status
         sermon_data['metadata']['core_bible_verse'] = sermon.core_bible_verse
         sermon_data['metadata']['keypoints'] = sermon.keypoints if sermon.keypoints else ''
+        sermon_data['metadata']['source'] = sermon.source 
 
         return sermon_data
     

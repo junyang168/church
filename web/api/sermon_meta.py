@@ -27,6 +27,7 @@ class Sermon(BaseModel):
     thumbnail: Optional[str] = None
     keypoints: Optional[str] = None
     core_bible_verse: Optional[List[dict]] = None
+    source: Optional[str] = None
 
 class SermonMetaManager:
 
@@ -117,6 +118,7 @@ class SermonMetaManager:
                                        thumbnail= '/web/data/thumbnail/' + m.get('item') + '.jpg',
                                        keypoints= self.kps_to_str(m.get('keypoints')),
                                        core_bible_verse=m.get('core_bible_verse', []),
+                                       source=m.get('source')  
                                        ) for m in self.sermon_meta]
         self.format_delivery_date()
 
