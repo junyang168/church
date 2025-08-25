@@ -20,6 +20,7 @@ import requests
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
+
 env_file = os.getenv("ENV_FILE")
 print(f'env_file: {env_file}')
 if env_file:
@@ -55,6 +56,9 @@ class SermonManager:
         self._scm = SermonCommentManager()
         self.semantic_search_url = os.getenv('SEMANTIC_SEARCH_API_URL')
 
+        with open(os.path.join(self.config_folder, 'fellowship.json'), 'r', encoding='utf-8') as f:
+            self.fellowship = json.load(f)
+
 
 
 
@@ -63,6 +67,9 @@ class SermonManager:
         observer = Observer()
         observer.schedule(event_handler, os.path.dirname(self.config_folder + '/config.json'), recursive=False)
         observer.start()
+
+    def get_next_fellowship(self):
+        return self.fellowship[-1]
 
 
     def get_file_path(self,type:str, item:str):

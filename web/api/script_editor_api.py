@@ -166,6 +166,10 @@ def get_latest_sermons_articles(count:int = 2):
     tops["qas"] = qam.qaManager.get_top_qas(count)
     return tops
 
+@app.get("/sc_api/fellowship")
+def get_fellowship():
+    return sm.sermonManager.get_next_fellowship()
+
 from fastapi.staticfiles import StaticFiles
 
 static_dir = os.path.join( os.path.dirname(os.path.abspath(__file__)) ,'static')
