@@ -42,7 +42,7 @@ class SermonMetaManager:
         self.bucket_name = os.getenv('AWS_S3_BUCKET_NAME')
         print(f'bucket_name: {self.bucket_name}') 
         self.load_sermon_metadata()
-#        self.load_sermons_from_s3()
+        self.load_sermons_from_s3()
 
     def load_sermons_from_s3(self):
         response = self.s3.list_objects_v2(Bucket=self.bucket_name, Prefix='script_review')
