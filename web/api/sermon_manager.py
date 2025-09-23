@@ -16,7 +16,7 @@ from image_to_text import ImageToText
 from copilot import Copilot, ChatMessage, Document
 from typing import List
 import requests
-
+from datetime import datetime, timedelta
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
@@ -69,8 +69,18 @@ class SermonManager:
         observer.start()
 
     def get_next_fellowship(self):
-        return self.fellowship[-1]
+        last_fellowship = self.fellowship[-1] 
+        last_date_str = last_fellowship['date'] 
+        last_date = datetime.strptime(last_date_str, "%m/%d/%Y")
+        next_date = last_date + timedelta(weeks=2)
+        if next_date < datetime.now():
+            last_date = next_date
+            self.fellowship.append({'date': next_date.strftime("%m/%d/%Y")})
+            with open(os.path.join(self.config_folder, 'fellowship.json'), 'w', encoding='utf-8') as f:
+                json.dump(self.fellowship, f, ensure_ascii=False, indent=4)
+            next_date = last_date + timedelta(weeks=2)
 
+        return {'date': next_date.strftime("%m/%d/%Y")}
 
     def get_file_path(self,type:str, item:str):
         return os.path.join(self.base_folder, type, item + '.json')
