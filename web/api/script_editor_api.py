@@ -47,6 +47,11 @@ class UpdateRequest(BaseModel):
     type:str
     data: List[Union[Slide, Paragraph]] 
 
+class UpdateHeaderRequest(BaseModel):
+    user_id:str = None
+    item:str
+    title:str
+
 class AssignRequest(BaseModel):
     user_id:str
     item:str
@@ -93,6 +98,10 @@ def load(user_id:str, type:str, item: str, ext:str='txt')->str:
 def update_script(request: UpdateRequest):
     return sm.sermonManager.update_sermon(request.user_id, request.type, request.item, request.data)
 
+
+@app.post("/sc_api/update_header")
+def update_header(request: UpdateHeaderRequest):
+    return sm.sermonManager.update_sermon_header(request.user_id, request.item, request.title)
 
 @app.get("/sc_api/sermon/{user_id}/{item}/{changes}")
 def get_sermon(user_id:str, item: str, changes:str = None): 

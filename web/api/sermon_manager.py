@@ -123,7 +123,6 @@ class SermonManager:
 
 
     def update_sermon(self, user_id:str, type:str,  item:str, data:dict):
-
         permissions = self.get_sermon_permissions(user_id, item)
         if not permissions.canWrite:
             return {"message": "You don't have permission to update this item"}
@@ -134,6 +133,12 @@ class SermonManager:
         sd = ScriptDelta(self.base_folder, item)
         return sd.save_script(user_id, type, item,data)
 
+    def update_sermon_header(self, user_id, item:str, title:str):
+        permissions = self.get_sermon_permissions(user_id, item)
+        if not permissions.canWrite:
+            return {"message": "You don't have permission to update this item"}
+        self._sm.update_sermon_metadata(user_id, item, title)
+        return {}
 
     def get_sermons(self, user_id:str):
         return self._sm.sermons

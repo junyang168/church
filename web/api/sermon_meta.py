@@ -139,11 +139,13 @@ class SermonMetaManager:
         sermon = next((s for s in self.sermons if s.item == item.strip()), None)
         return sermon
   
-    def update_sermon_metadata(self, user_id:str, item:str):
+    def update_sermon_metadata(self, user_id:str, item:str, title:str = None):
         sermon = self.get_sermon_metadata(user_id, item)
         sermon.last_updated = self.convert_datetime_to_cst_string(datetime.datetime.now())
         sermon.author = user_id
         sermon.author_name = self.user_getter(user_id).get('name')
+        if title is not None:
+            sermon.title = title
 
     def save_sermon_metadata(self):
         with open(self.metadata_file_path, "w") as f:
