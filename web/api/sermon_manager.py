@@ -214,7 +214,7 @@ class SermonManager:
             sermon.assigned_to = user_id       
             sermon.assigned_to_name = self._acl.get_user(user_id).get('name')  
             sermon.status = 'assigned'  
-            sermon.assigned_to_date = self._sm.convert_datetime_to_cst_string(datetime.datetime.now())
+            sermon.assigned_to_date = self._sm.convert_datetime_to_cst_string(datetime.now())
 
         elif action == 'unassign' and permissions.canUnassign:
             sermon.assigned_to = None
