@@ -36,13 +36,13 @@ class SermonMetaManager:
         self.config_folder =  os.path.join(self.base_folder, "config")
         self.metadata_file_path =  os.path.join(self.config_folder,"sermon.json")
         self.user_getter = user_getter
-        aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
-        aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-        self.s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-        self.bucket_name = os.getenv('AWS_S3_BUCKET_NAME')
-        print(f'bucket_name: {self.bucket_name}') 
+#        aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+#        aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+#        self.s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+#        self.bucket_name = os.getenv('AWS_S3_BUCKET_NAME')
+#        print(f'bucket_name: {self.bucket_name}') 
         self.load_sermon_metadata()
-        self.load_sermons_from_s3()
+#        self.load_sermons_from_s3()
 
     def load_sermons_from_s3(self):
         response = self.s3.list_objects_v2(Bucket=self.bucket_name, Prefix='script_review')

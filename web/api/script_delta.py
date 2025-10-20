@@ -32,7 +32,13 @@ class ScriptDelta:
         with open( self.base_folder +  '/script_review/' + self.item_name + '.json', 'r') as file1:
             self.review = json.load(file1)
             return [ p.get('text') for p in  self.review ]
-    
+
+    def loadPublishedScript(self):
+        with open( self.base_folder +  '/script_published/' + self.item_name + '.json', 'r') as file1:
+            published_data = json.load(file1)
+            return published_data['metadata'],  [ p.get('text') for p in  published_data['script'] ]
+
+
     def loadTimeline(self):
         with open(self.base_folder +  '/script/' + self.item_name + '.json', 'r') as f:           
             timeData = json.load(f) 
@@ -252,20 +258,21 @@ class ScriptDelta:
 
     def get_final_script(self, is_published:bool=True, remove_tags:bool=True):
         if is_published:
-            s3 = self.get_s3()
-            response = s3.get_object(Bucket=self.bucket_name, Key='script_published/' + self.item_name + '.json')
-            sermon_data =  response['Body'].read().decode('utf-8')
-            sermon_detail =  json.loads(sermon_data)
-            if isinstance(sermon_detail, dict):
-                sermon_detail = sermon_detail['script']
-            metadata = response['Metadata']
+#            s3 = self.get_s3()
+#            response = s3.get_object(Bucket=self.bucket_name, Key='script_published/' + self.item_name + '.json')
+#           sermon_data =  response['Body'].read().decode('utf-8')
+#            sermon_detail =  json.loads(sermon_data)
+#            if isinstance(sermon_detail, dict):
+#                sermon_detail = sermon_detail['script']
+            metadata, sermon_detail = self.loadPublishedScript()
+#            metadata = response['Metadata']
         else:
             self.loadReviewScript()
             sermon_detail = self.review
             metadata = {}
         
-        if remove_tags:
-            sermon_detail = self.get_clean_script(sermon_detail)
+#        if remove_tags:
+#            sermon_detail = self.get_clean_script(sermon_detail)
         return { 'metadata': metadata, 'script': sermon_detail}
 
 
@@ -284,9 +291,9 @@ class ScriptDelta:
         with open( self.base_folder +  '/script_published/' + self.item_name + '.json', 'w') as file1:
             json.dump(published, file1, ensure_ascii=False, indent=4)
 
-        s3 = self.get_s3()
-        sermon_data = json.dumps(published_script, ensure_ascii=False)
-        s3.put_object(Body=sermon_data, Bucket=self.bucket_name, Key='script_published/' + self.item_name + '.json', Metadata={'author': author, 'published_date': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')})
+#        s3 = self.get_s3()
+#        sermon_data = json.dumps(published_script, ensure_ascii=False)
+#        s3.put_object(Body=sermon_data, Bucket=self.bucket_name, Key='script_published/' + self.item_name + '.json', Metadata={'author': author, 'published_date': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')})
 
 
 
