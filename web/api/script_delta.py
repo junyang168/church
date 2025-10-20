@@ -36,7 +36,7 @@ class ScriptDelta:
     def loadPublishedScript(self):
         with open( self.base_folder +  '/script_published/' + self.item_name + '.json', 'r') as file1:
             published_data = json.load(file1)
-            return published_data['metadata'],  [ p.get('text') for p in  published_data['script'] ]
+            return published_data['metadata'],  [ {'text': p.get('text')} for p in  published_data['script'] ]
 
 
     def loadTimeline(self):
