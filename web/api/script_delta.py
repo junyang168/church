@@ -271,8 +271,8 @@ class ScriptDelta:
             sermon_detail = self.review
             metadata = {}
         
-#        if remove_tags:
-#            sermon_detail = self.get_clean_script(sermon_detail)
+        if remove_tags:
+            sermon_detail = self.get_clean_script(sermon_detail)
         return { 'metadata': metadata, 'script': sermon_detail}
 
 
