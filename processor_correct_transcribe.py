@@ -88,7 +88,7 @@ class ProcessorCorrectTranscription(Processor):
         return formatted_paragraphs
             
 
-    def process(self, input_folder, item_name:str, output_folder:str, file_name:str = None, is_append:bool = False):
+    def process(self, input_folder, item_name:str, output_folder:str, file_name:str = None, sermon = None):
             srt_file_name = os.path.join(input_folder, item_name + '.json')
             output_file_name = os.path.join(output_folder, item_name + '.json')
 
@@ -260,4 +260,4 @@ if __name__ == '__main__':
         processor.process(base_folder + '/' + 'script', sermon_item, base_folder + '/script_patched')
     pass
     '''
-    processor.process(base_folder + '/' + 'script', '2021 NYSC 專題：馬太福音釋經（八）王守仁 教授 4之1', base_folder + '/script_patched')
+    processor.process(base_folder + '/' + 'script', 'S 200524', base_folder + '/script_patched')

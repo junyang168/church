@@ -17,7 +17,7 @@ from processor_correct_transcribe import ProcessorCorrectTranscription
 from processor_add_title import ProcessorAddTitle
 from processor_summarize import ProcessorSummarize
 from processor_thumbnail import ProcessorGenerateThumbnail
-from tags.sermon_summarizer import ProcessorGetKeypoints
+from processor_download_audio import ProcessorDownloadAudio
 import json
 import datetime
 
@@ -26,7 +26,8 @@ class ProcessingPipeline:
         self.processors = [
 #                            ProcessorAudio(), 
 #                            ProcessorConvertVideo(),
-                            ProcessorExtractAudio(),                            
+#                            ProcessorExtractAudio(),   
+                            ProcessorDownloadAudio(),                         
                             ProcessorTranscribe(),
                             ProcessorCorrectTranscription(),
                             ProcessorAddTitle()
@@ -78,7 +79,7 @@ class ProcessingPipeline:
                 if  pd.isna(status) or status == 'In Progress':
                     df.at[item_name, p.get_name()] = 'In Progress'
                     print(f'Processing {item_name} with {p.get_name()}')
-                    if p.process(input_folder, item_name, self.base_folder + '/' + p.get_output_folder_name()):
+                    if p.process(input_folder, item_name, self.base_folder + '/' + p.get_output_folder_name(), None, sermon):
                         df.at[item_name, p.get_name()] = 'Completed'
                         df.to_excel(self.control_file, index=True)
                 elif status == 'Pause':

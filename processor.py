@@ -17,7 +17,7 @@ class Processor(ABC):
         pass
 
     @abstractmethod
-    def process(self,input_folder, item_name:str, output_folder:str, file_name:str = None, is_append:bool = False):
+    def process(self,input_folder, item_name:str, output_folder:str, file_name:str = None, sermon = None):
         pass
 
 

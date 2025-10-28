@@ -15,15 +15,19 @@ def save_sermon_meta(sermon_meta, file_path):
 
 def main():
     base_folder = '/Users/junyang/church/web/data'  
-    processor = Summarizer()
     sermon_content_folder = base_folder + '/sermon_content'
-    cfg_file_name = base_folder + '/config/' + 'sermon.json'
+    cfg_base_folder = '/opt/homebrew/var/www/church/web/data'  
+    cfg_file_name = cfg_base_folder + '/config/' + 'sermon.json'
     with open(cfg_file_name, 'r') as fsc:
         sermon_meta = json.load(fsc)
 
-    sermon_files = [f for f in os.listdir(sermon_content_folder) if f.endswith('.json')]
-    for file_name in sermon_files:
-        with open(os.path.join(sermon_content_folder, file_name), 'r') as sf:
+    processor = Summarizer()
+
+    with open(os.path.join(sermon_content_folder, 'work_items.json'), 'r') as wf:
+        work_items = json.load(wf)
+    item_ids = [w[w.rfind('/')+1:] for w in work_items]
+    for item in item_ids:
+        with open(os.path.join(sermon_content_folder, item + '.json'), 'r') as sf:
             sermon = json.load(sf)
             article = '\n\n'.join([p.get('text', '') for p in sermon.get('script', [])])
             article = sermon['metadata']['title'] + '\n\n' + article

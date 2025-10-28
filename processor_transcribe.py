@@ -28,7 +28,7 @@ class ProcessorTranscribe(Processor):
         return ".mp3"
 
     
-    def process(self, input_folder, item_name:str, output_folder:str, file_name:str = None):
+    def process(self, input_folder, item_name:str, output_folder:str, file_name:str = None, sermon = None):
         trancriber = AudioTranscriber(os.path.join(output_folder,item_name))
         return trancriber.transcribe(os.path.join(input_folder,item_name + self.get_file_extension()) )
 

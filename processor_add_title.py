@@ -50,7 +50,7 @@ class ProcessorAddTitle(Processor):
         
 
     
-    def process(self, input_folder, item_name:str, output_folder:str, meta_file_name:str = 'sermon.json', is_append:bool = False):
+    def process(self, input_folder, item_name:str, output_folder:str, meta_file_name:str = 'sermon.json', sermon=None):
         if re.match(r'^S \d{6}.+$', item_name):
             title = item_name[8:].strip()
         else:
@@ -59,6 +59,10 @@ class ProcessorAddTitle(Processor):
                 paragraphs = json.load(fsc)
             article = '\n\n'.join( [ p['text'] for p in paragraphs ] )
             title = self.get_title(article)
+
+        if meta_file_name is None:
+            meta_file_name = 'sermon.json'
+
 
         update_metadata_item_title( output_folder + '/' + meta_file_name, item_name, title)
 
